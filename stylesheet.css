@@ -32,11 +32,15 @@ td{
 .heading{
   background-color: #85ADFF;
 }
+a{
+  color: #334C80;
+}
 a:hover {
   color: #334C80;
   font-weight: bold;
   text-decoration: none;
 }
 a:visited{
-  color: #FFFFFF;
+  color: #6684C2;
+
 }
