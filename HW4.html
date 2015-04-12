@@ -94,19 +94,21 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
     d3.json('VAlargecities.json', function(data) {
 
 // DATA NESTED
-          var measures  = d3.nest()
-            .key(function(d) { return d.measure; })
+          var measures = d3.nest()
+            .key(function(d) {
+                //if (d.timeframe === "4") {
+                  return d.measure; //}
+              //TRYING to put "else" here that will pull data being logged as undefined
+               })
             .entries(data);
 
           console.log(measures);
           console.log(measures["timeframe"]); //changed to timeframe
 
-
-//6:30PM start here
-// Compute the minimum and maximum year and percent across symbols.
+// xScale domain
   xScale.domain(data.map(function(d) { return d.city; }));
 
-  // Add an SVG element for each country, with the desired dimensions and margin.
+  // Add an SVG element for each measure, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
     .data(measures)
     .enter()
@@ -127,10 +129,11 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
     .text(function(d) {return d.key});
 });
 
+
 function multiple (measures) {
   var svg = d3.select(this);
 
-  yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
+  yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
   svg.selectAll(".bar")
       .data(function(d) {return measures.values;})
@@ -169,7 +172,6 @@ function multiple (measures) {
     .attr("text-anchor", "start")
     .attr("font-size", "1.1em")
     .text(function(d) { return d.key});
-  }
 
   // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
   // data(function(d) {return d.values;})
@@ -186,7 +188,7 @@ function multiple (measures) {
       .attr("height", function(d) { return h - yScale(d); })
       .attr("fill", function(d) {return color(d.city)})
 
-
+ };
 
 /*
 function type(d) {
