@@ -55,6 +55,12 @@
   Add interaction
   */
 
+/*
+Understanding and some code borrowed and adapted from:
+Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/9490313
+&
+officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
+*/
         var w = 400;
         var h = 240;
         var margin = {top: 15, right: 10, bottom: 75, left: 35};
@@ -107,14 +113,17 @@
     .append("svg")
     .attr("width", w + margin.left + margin.right)
     .attr("height", h + margin.top + margin.bottom)
-  .append("g")
+    .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
     .each(multiple);
 
+//For MEASURE names
   svg.append("text")
-    .attr("x", w-6)
-    .attr("y", h-6)
-    .style("text-anchor", "end")
+    .attr("x", w/2)
+    .attr("y", 10)
+    .style("text-anchor", "middle")
+    .style("font-size", "1.5em")
+    .style("font-weight", "bold")
     .text(function(d) {return d.key});
 });
 
@@ -136,21 +145,21 @@ function multiple (measures) {
       .attr("fill", function(d) {return color(d.city)});
 
 
-
   svg.append("g")
+  //add city ticks
       .attr("class", "x axis")
       .attr("transform", "translate(0," + h + ")")
       .call(xAxis)
+  //add city names
       .selectAll("text")
-      .attr("translate", "translate(-21.5,0)")
+      //.attr("transform", "translate(-21.5,-6)")
       .style("text-anchor", "end")
       .attr("dx", "-1em")
-      .attr("dy", "-1em")
+      .attr("dy", "-.6em")
       .attr("fill", "darkgrey")
       .attr("transform", "rotate(-90)");
 
   svg.append("g")
-      // Hide y axis
     .attr("class", "y axis")
     .call(yAxis)
     .append("text")
