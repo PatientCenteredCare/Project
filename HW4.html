@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset="utf-8">
+      <title>Small Multiples</title>
+      <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+      <style type="text/css">
+
+      body{
+        background-color: white;
+        font: 11px sans-serif;
+        margin: 10px;
+      }
+
+      h2 {
+        font-family:Helvetica;
+        color:black;
+        }
+      .axis path, .axis line {
+        fill: none;
+        stroke: steelblue;
+        shape-rendering: crispEdges;
+      }
+
+      .bar:hover {
+       fill: #bcbcbc ;
+      }
+
+      .x.axis path {
+        display: none;
+      }
+
+      .bin{
+        width:750px;
+      }
+      </style>
+</head>
+
+  <body>
+
+    <h2><em>HAIs at selected VA Medical Centers across the country:<br>A comparison</em></h2>
+    <div id="vis"></div>
+  <script type="text/javascript">
+//START SCRIPT
+
+/*START SMALL MULTIPLES CODE*/
+/* Flow of our code:
+  Get the data
+  Nest the data so that we have 5 small multiples of the data for 1 quarter with
+    a chart per HAI.
+  Iteratively build  SVG element per HAI
+  Iteratively populate the SVG with rectangles
+  Iteratively Add titles and axis
+  Add interaction
+  */
+
+        var w = 400;
+        var h = 240;
+        var margin = {top: 15, right: 10, bottom: 75, left: 35};
+
+
+        var color = d3.scale.category20b();
+
+
+      /*  var color = d3.scale.linear()
+          .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
+          .domain([0,0.2,0.4,0.6,0.8]);*/
+
+        var xScale = d3.scale.ordinal()
+          .rangeRoundBands([0,w],.1);
+
+        var yScale = d3.scale.linear()
+          .range([h,0]);
+
+        var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .ticks(5);
+
+/* could add add var tip code here for box that appears on hover */
+
+// DATA LOADED
+    d3.json('VAlargecities.json', function(data) {
+
+// DATA NESTED
+          var measures  = d3.nest()
+            .key(function(d) { return d.measure; })
+            .entries(data);
+
+          console.log(measures);
+          console.log(measures["timeframe"]); //changed to timeframe
+
+
+//6:30PM start here
+// Compute the minimum and maximum year and percent across symbols.
+  xScale.domain(data.map(function(d) { return d.city; }));
+
+  // Add an SVG element for each country, with the desired dimensions and margin.
+  var svg = d3.select("#vis").selectAll("svg")
+    .data(measures)
+    .enter()
+    .append("svg")
+    .attr("width", w + margin.left + margin.right)
+    .attr("height", h + margin.top + margin.bottom)
+  .append("g")
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .each(multiple);
+
+  svg.append("text")
+    .attr("x", w-6)
+    .attr("y", h-6)
+    .style("text-anchor", "end")
+    .text(function(d) {return d.key});
+});
+
+function multiple (measures) {
+  var svg = d3.select(this);
+
+  yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
+
+  svg.selectAll(".bar")
+      .data(function(d) {return measures.values;})
+    /*.filter(function(d) {return d.timeframe == "4"})*/
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return xScale(d.city); })
+      .attr("width", xScale.rangeBand() )
+      .attr("y", function(d) { return yScale(d.observed); })
+      .attr("height", function(d) { return h - yScale(d.observed); })
+      .attr("fill", function(d) {return color(d.city)});
+
+
+
+  svg.append("g")
+      .attr("class", "x axis")
+      .attr("transform", "translate(0," + h + ")")
+      .call(xAxis)
+      .selectAll("text")
+      .attr("translate", "translate(-21.5,0)")
+      .style("text-anchor", "end")
+      .attr("dx", "-1em")
+      .attr("dy", "-1em")
+      .attr("fill", "darkgrey")
+      .attr("transform", "rotate(-90)");
+
+  svg.append("g")
+      // Hide y axis
+    .attr("class", "y axis")
+    .call(yAxis)
+    .append("text")
+    .attr("x", w + 10)
+    .attr("y", h/3)
+    .attr("dy", ".71em")
+    .attr("text-anchor", "start")
+    .attr("font-size", "1.1em")
+    .text(function(d) { return d.key});
+  }
+
+  // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
+  // data(function(d) {return d.values;})
+  // this will dereference the values for nested data for each group
+  svg.selectAll(".bar")
+      .data(function(d) {return measures.values;})
+    /*.filter(function(d) {return d.timeframe == "4"})*/
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return xScale(d.city); })
+      .attr("width", xScale.rangeBand() )
+      .attr("y", function(d) { return yScale(d.observed); })
+      .attr("height", function(d) { return h - yScale(d); })
+      .attr("fill", function(d) {return color(d.city)})
+
+
+
+/*
+function type(d) {
+  d.percent = +d.percent;
+  return d;
+}
+*/
+      </script>
+  </body>
+</html>
