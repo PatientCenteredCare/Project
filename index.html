@@ -124,6 +124,21 @@
           console.log(measures);
           console.log(measures["timeframe"]); //changed to timeframe
 
+
+//FILTER DATA?
+function filter(data) {
+  for(var i in data){
+    if(["timeframe"].indexOf(i) === "FY 2014 Q3"){
+       delete data[i]; 
+    } else if (i === "FY 2014 Q3") {
+      for (var j in data.children) {
+        data.children[j] = filter(data.children[j])
+      }
+    }  
+  }
+  return data;
+}
+
 /*
 // Set local variable for input data. Transformation of this data has already been done by the time it reaches chart.
     var data = rawData*/
@@ -197,9 +212,9 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", function(d) { return xScale(d.city); })
+      .attr("x", function(d, i) { return xScale(data[i].city); })
       .attr("width", xScale.rangeBand() )
-      .attr("y", function(d) { return yScale(d.observed); })
+      .attr("y", function(d, i) { return yScale(data[i].observed); })
       .attr("height", function(d) { return h - yScale(d); })
       .attr("fill", function(d) {return color(d.city)})
       /*
