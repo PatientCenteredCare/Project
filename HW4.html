@@ -19,7 +19,7 @@
         }
       .axis path, .axis line {
         fill: none;
-        stroke: #000;
+        stroke: steelblue;
         shape-rendering: crispEdges;
       }
 
@@ -31,36 +31,6 @@
         display: none;
       }
 
-/* DON'T KNOW WHAT tooltips are, think this is for interactive hover box
-      .d3-tip {
-        line-height: 1;
-        font-weight: bold;
-        padding: 12px;
-        background: rgba(0, 0, 0, 0.8);
-        color: #efefef;
-        border-radius: 2px;
-      }
-
-//Creates a small triangle extender for the tooltip
-  .d3-tip:after {
-    box-sizing: border-box;
-    display: inline;
-    font-size: 10px;
-    width: 100%;
-    line-height: 1;
-    color: rgba(0, 0, 0, 0.8);
-    content: "\25BC";
-    position: absolute;
-    text-align: center;
-  }
-
-  // Style northward tooltips differently
-  .d3-tip.n:after {
-    margin: -1px 0 0 0;
-    top: 100%;
-    left: 0;
-  }
-*/
       .bin{
         width:750px;
       }
@@ -79,14 +49,14 @@
   Get the data
   Nest the data so that we have 5 small multiples of the data for 1 quarter with
     a chart per HAI.
-  Iteratively build a div and SVG element per HAI
+  Iteratively build  SVG element per HAI
   Iteratively populate the SVG with rectangles
   Iteratively Add titles and axis
   Add interaction
   */
 
         var w = 400;
-        var h = 120;
+        var h = 240;
         var margin = {top: 15, right: 10, bottom: 75, left: 35};
 
 
@@ -109,12 +79,13 @@
 
         var yAxis = d3.svg.axis()
           .scale(yScale)
-          .orient("left");
+          .orient("left")
+          .ticks(5);
 
 /* could add add var tip code here for box that appears on hover */
 
 // DATA LOADED
-    d3.json('redoVAcompare.json', function(data) {
+    d3.json('VAlargecities.json', function(data) {
 
 // DATA NESTED
           var measures  = d3.nest()
@@ -125,60 +96,46 @@
           console.log(measures["timeframe"]); //changed to timeframe
 
 
-//FILTER DATA?
-function filter(data) {
-  for(var i in data){
-    if(["timeframe"].indexOf(i) === "FY 2014 Q3"){
-       delete data[i]; 
-    } else if (i === "FY 2014 Q3") {
-      for (var j in data.children) {
-        data.children[j] = filter(data.children[j])
-      }
-    }  
-  }
-  return data;
-}
-
-/*
-// Set local variable for input data. Transformation of this data has already been done by the time it reaches chart.
-    var data = rawData*/
-
-// Create a div and an SVG element for each element in our data array. Note that data is a nested array with each element containing another array of 'values'
-/*    div = d3.select(this).selectAll(".chart").data(measure)
-
-    div.enter().append("div").attr("class", "chart")
-      .append("svg").append("g")
-
-    svg = div.select("svg")
-      .attr("width", w + margin.left + margin.right )
-      .attr("height", h + margin.top + margin.bottom )
-
-    g = svg.select("g")
-      .attr("transform", "translate("+ margin.left+ ","+margin.top+ ")")
-
-    // Invisible background rectangle that will capture all our mouse movements
-    g.append("rect")
-      .attr("class", "background")
-      .style("pointer-events", "all")
-      .attr("width", w + margin.right )
-      .attr("height", h)
-*/
-
-
 //6:30PM start here
 // Compute the minimum and maximum year and percent across symbols.
   xScale.domain(data.map(function(d) { return d.city; }));
-  yScale.domain([0, d3.max(measures, function(d) { return d.observed; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
 
   // Add an SVG element for each country, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
     .data(measures)
     .enter()
-    .append("svg:svg")
+    .append("svg")
     .attr("width", w + margin.left + margin.right)
     .attr("height", h + margin.top + margin.bottom)
   .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+    .each(multiple);
+
+  svg.append("text")
+    .attr("x", w-6)
+    .attr("y", h-6)
+    .style("text-anchor", "end")
+    .text(function(d) {return d.key});
+});
+
+function multiple (measures) {
+  var svg = d3.select(this);
+
+  yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
+
+  svg.selectAll(".bar")
+      .data(function(d) {return measures.values;})
+    /*.filter(function(d) {return d.timeframe == "4"})*/
+      .enter()
+      .append("rect")
+      .attr("class", "bar")
+      .attr("x", function(d) { return xScale(d.city); })
+      .attr("width", xScale.rangeBand() )
+      .attr("y", function(d) { return yScale(d.observed); })
+      .attr("height", function(d) { return h - yScale(d.observed); })
+      .attr("fill", function(d) {return color(d.city)});
+
+
 
   svg.append("g")
       .attr("class", "x axis")
@@ -194,8 +151,8 @@ function filter(data) {
 
   svg.append("g")
       // Hide y axis
-      // .attr("class", "y axis")
-      // .call(yAxis)
+    .attr("class", "y axis")
+    .call(yAxis)
     .append("text")
     .attr("x", w + 10)
     .attr("y", h/3)
@@ -203,28 +160,24 @@ function filter(data) {
     .attr("text-anchor", "start")
     .attr("font-size", "1.1em")
     .text(function(d) { return d.key});
+  }
 
   // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
   // data(function(d) {return d.values;})
   // this will dereference the values for nested data for each group
   svg.selectAll(".bar")
-      .data(function(d) {return d.values;})
+      .data(function(d) {return measures.values;})
+    /*.filter(function(d) {return d.timeframe == "4"})*/
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", function(d, i) { return xScale(data[i].city); })
+      .attr("x", function(d) { return xScale(d.city); })
       .attr("width", xScale.rangeBand() )
-      .attr("y", function(d, i) { return yScale(data[i].observed); })
+      .attr("y", function(d) { return yScale(d.observed); })
       .attr("height", function(d) { return h - yScale(d); })
       .attr("fill", function(d) {return color(d.city)})
-      /*
-      .on('mouseover', tip.show)
-      .on('mouseout', tip.hide)
 
-  svg.call(tip);
-   THIS STUFF IS FOR TIP */
 
-});
 
 /*
 function type(d) {
