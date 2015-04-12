@@ -114,7 +114,7 @@
 /* could add add var tip code here for box that appears on hover */
 
 // DATA LOADED
-    d3.json('redoVAcompare.json', type, function(data) {
+    d3.json('redoVAcompare.json', function(data) {
 
 // DATA NESTED
           var measures  = d3.nest()
@@ -152,8 +152,8 @@
 
 //6:30PM start here
 // Compute the minimum and maximum year and percent across symbols.
-  x.domain(data.map(function(d) { return d.city; }));
-  y.domain([0, d3.max(measures, function(s) { return s.observed[0]; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
+  xScale.domain(data.map(function(d) { return d.city; }));
+  yScale.domain([0, d3.max(measures, function(s) { return s.observed[0]; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
 
   // Add an SVG element for each country, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
@@ -190,10 +190,10 @@
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", function(d) { return x(d.city); })
-      .attr("width", x.rangeBand())
-      .attr("y", function(d) { return y(d.observed); })
-      .attr("height", function(d) { return height - y(d); })
+      .attr("x", function(d) { return xScale(d.city); })
+      .attr("width", xScale.rangeBand())
+      .attr("y", function(d) { return yScale(d.observed); })
+      .attr("height", function(d) { return height - yScale(d); })
       .attr("fill", function(d) {return color(d)})
       /*
       .on('mouseover', tip.show)
@@ -210,9 +210,6 @@ function type(d) {
   return d;
 }
 */
-
-
-});
       </script>
   </body>
 </html>
