@@ -87,15 +87,15 @@
 
         var w = 400;
         var h = 120;
-        var margin = {top: 15, right: 10, bottom: 75, left: 35};
+        var margin = {top: 15, right: 10, bottom: 40, left: 35};
 
-
+        /*
         var color = d3.scale.category20b();
+*/
 
-
-      /*  var color = d3.scale.linear()
+        var color = d3.scale.linear()
           .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
-          .domain([0,0.2,0.4,0.6,0.8]);*/
+          .domain([0,0.2,0.4,0.6,0.8]);
 
         var xScale = d3.scale.ordinal()
           .rangeRoundBands([0,w],.1);
@@ -123,21 +123,6 @@
 
           console.log(measures);
           console.log(measures["timeframe"]); //changed to timeframe
-
-
-//FILTER DATA?
-function filter(data) {
-  for(var i in data){
-    if(["timeframe"].indexOf(i) === "FY 2014 Q3"){
-       delete data[i]; 
-    } else if (i === "FY 2014 Q3") {
-      for (var j in data.children) {
-        data.children[j] = filter(data.children[j])
-      }
-    }  
-  }
-  return data;
-}
 
 /*
 // Set local variable for input data. Transformation of this data has already been done by the time it reaches chart.
@@ -183,14 +168,7 @@ function filter(data) {
   svg.append("g")
       .attr("class", "x axis")
       .attr("transform", "translate(0," + h + ")")
-      .call(xAxis)
-      .selectAll("text")
-      .attr("translate", "translate(-21.5,0)")
-      .style("text-anchor", "end")
-      .attr("dx", "-1em")
-      .attr("dy", "-1em")
-      .attr("fill", "darkgrey")
-      .attr("transform", "rotate(-90)");
+      .call(xAxis);
 
   svg.append("g")
       // Hide y axis
@@ -212,11 +190,11 @@ function filter(data) {
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", function(d, i) { return xScale(data[i].city); })
-      .attr("width", xScale.rangeBand() )
-      .attr("y", function(d, i) { return yScale(data[i].observed); })
+      .attr("x", function(d) { return xScale(d.city); })
+      .attr("width", xScale.rangeBand())
+      .attr("y", function(d) { return yScale(d.observed); })
       .attr("height", function(d) { return h - yScale(d); })
-      .attr("fill", function(d) {return color(d.city)})
+      .attr("fill", function(d) {return color(d)})
       /*
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide)

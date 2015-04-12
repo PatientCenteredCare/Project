@@ -6,7 +6,7 @@
       <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
       <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
       <style type="text/css">
-
+      
       body{
         background-color: white;
         font: 11px sans-serif;
@@ -87,15 +87,15 @@
 
         var w = 400;
         var h = 120;
-        var margin = {top: 15, right: 10, bottom: 75, left: 35};
+        var margin = {top: 15, right: 10, bottom: 40, left: 35};
 
-
+        /*
         var color = d3.scale.category20b();
+*/
 
-
-      /*  var color = d3.scale.linear()
+        var color = d3.scale.linear()
           .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
-          .domain([0,0.2,0.4,0.6,0.8]);*/
+          .domain([0,0.2,0.4,0.6,0.8]);
 
         var xScale = d3.scale.ordinal()
           .rangeRoundBands([0,w],.1);
@@ -123,21 +123,6 @@
 
           console.log(measures);
           console.log(measures["timeframe"]); //changed to timeframe
-
-
-//FILTER DATA?
-function filter(data) {
-  for(var i in data){
-    if(["timeframe"].indexOf(i) === "FY 2014 Q3"){
-       delete data[i]; 
-    } else if (i === "FY 2014 Q3") {
-      for (var j in data.children) {
-        data.children[j] = filter(data.children[j])
-      }
-    }  
-  }
-  return data;
-}
 
 /*
 // Set local variable for input data. Transformation of this data has already been done by the time it reaches chart.
@@ -168,55 +153,48 @@ function filter(data) {
 //6:30PM start here
 // Compute the minimum and maximum year and percent across symbols.
   xScale.domain(data.map(function(d) { return d.city; }));
-  yScale.domain([0, d3.max(measures, function(d) { return d.observed; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
+  yScale.domain([0, d3.max(measures, function(s) { return s.observed[0]; })]); //CONFUSED BY s.values[0].percent; to s.observed[0]
 
   // Add an SVG element for each country, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
     .data(measures)
     .enter()
     .append("svg:svg")
-    .attr("width", w + margin.left + margin.right)
-    .attr("height", h + margin.top + margin.bottom)
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
   .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
   svg.append("g")
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + h + ")")
-      .call(xAxis)
-      .selectAll("text")
-      .attr("translate", "translate(-21.5,0)")
-      .style("text-anchor", "end")
-      .attr("dx", "-1em")
-      .attr("dy", "-1em")
-      .attr("fill", "darkgrey")
-      .attr("transform", "rotate(-90)");
+      .attr("transform", "translate(0," + height + ")")
+      .call(xAxis);
 
   svg.append("g")
       // Hide y axis
       // .attr("class", "y axis")
       // .call(yAxis)
     .append("text")
-    .attr("x", w + 10)
-    .attr("y", h/3)
+    .attr("x", width + 10)
+    .attr("y", height/3)
     .attr("dy", ".71em")
     .attr("text-anchor", "start")
     .attr("font-size", "1.1em")
     .text(function(d) { return d.key});
 
   // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
-  // data(function(d) {return d.values;})
+  // data(function(d) {return d.values;}) 
   // this will dereference the values for nested data for each group
   svg.selectAll(".bar")
       .data(function(d) {return d.values;})
       .enter()
       .append("rect")
       .attr("class", "bar")
-      .attr("x", function(d, i) { return xScale(data[i].city); })
-      .attr("width", xScale.rangeBand() )
-      .attr("y", function(d, i) { return yScale(data[i].observed); })
-      .attr("height", function(d) { return h - yScale(d); })
-      .attr("fill", function(d) {return color(d.city)})
+      .attr("x", function(d) { return xScale(d.city); })
+      .attr("width", xScale.rangeBand())
+      .attr("y", function(d) { return yScale(d.observed); })
+      .attr("height", function(d) { return height - yScale(d); })
+      .attr("fill", function(d) {return color(d)})
       /*
       .on('mouseover', tip.show)
       .on('mouseout', tip.hide)
