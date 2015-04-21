@@ -41,6 +41,10 @@
        fill: darkgrey;
        duration: 250ms;
       }
+      .circle:hover {
+       fill: darkgrey ;
+       duration: 250ms;
+      }
       .x.axis path {
         display: none;
       }
@@ -48,8 +52,11 @@
         width: 1000px;
       }
       #vis{
-        width: 1000px;
+        width: 1200px;
         margin-top: 40px;
+      }
+      .dot.hidden{
+        display:none;
       }
       </style>
 
@@ -154,6 +161,11 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
           .scale(yScale)
           .orient("left")
           .ticks(5);
+
+          var line = d3.svg.line()
+            .x(function(d){return xScaleTime(d.timeframe);})
+            .y(function(d){return yScale(d.observed);})
+            ;
 /* could add add var tip code here for box that appears on hover */
 // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
@@ -169,7 +181,7 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
           console.log(measures["timeframe"]); //changed to timeframe
 // xScale domain
   xScale.domain(data.map(function(d) { return d.city; }));
-
+  xScaleTime.domain(measures.values.map(function(d){return d.timespan}));
 
   // Add an SVG element for each measure, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
@@ -198,14 +210,12 @@ function multiple (measures) {
   var svg = d3.select(this);
 
   yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
-  xScaleTime.domain(measures.values.map(function(d){return d.timespan}));
+
 
 /*  var line = d3.svg.line()
-    .attr("class", "line")
-    .attr("class", function(d){return d.city;})
-    .attr("class", function(d){return d.timespan;})
-    .attr("x", function(d){return xScaleTime(d.timespan)})
-    .attr("y", function(d){return h-yScale(d.observed)})
+
+    .x(function(d){return xScaleTime(d.timespan)})
+    .y(function(d){return h-yScale(d.observed)})
     .attr("stroke", function(d){return color(d.city)})
     ;*/
 
@@ -230,17 +240,35 @@ function multiple (measures) {
       .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
       ;
 
-/*  svg..line.selectAll(".line")
+  svg.selectAll(".dot")
+      .data(function(d) {return measures.values;})
+      .enter()
+      .append("g")
+      .append("circle")
+      .attr("class", "dot")
+      .attr("class", "hidden")
+      .attr("class", "circle")
+      .attr("cx", function(d) { return xScaleTime(d.timeframe); })
+      .attr("cy", function(d) { return yScale(d.observed); })
+      .attr("r", 2)
+      .attr("fill", function(d) {return color(d.city)})
+      .append("title")
+      .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
+      .attr("y", function(d) { return yScale(d.observed); }+2)
+      .attr("dy", ".71em")
+      .attr("text-anchor", "start")
+      .attr("font-size", "1.1em")
+      .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
+      ;
+/*  svg.selectAll(".line")
       .data(function(d){return measures.values; })
       .enter()
-      .append("line");
-/*      .attr("class", "line")
+      .append("g")
+      .append("path")
+      .attr("class", "line")
       .attr("class", function(d){return d.city;})
       .attr("class", function(d){return d.timespan;})
-      .attr("x", function(d){return xScaleTime(d.timespan)})
-      .attr("y", function(d){return h-yScale(d.observed)})
-      .attr("stroke", function(d){return color(d.city)})
-      ;*/
+/*    .attr("d", line(measures.values))          ;*/
 
 
   svg.append("g")
@@ -257,19 +285,20 @@ function multiple (measures) {
       .attr("font-size", "0.85em")
       .attr("transform", "rotate(-90)")
       ;
-
-/*  svg.append("g")
+  svg.append("g")
       //add quarter ticks
       .attr("class", "x axis")
-      .attr("transform", "translate(0," + 20 + ")")
+      .attr("class","hidden")
+      .attr("class", "dot")
+      .attr("transform", "translate(0," + 15 + ")")
       .call(xAxisTime)
-      //add city names
-          .selectAll("text")
-          .style("text-anchor", "middle")
-          .attr("dx", "-1em")
-          .attr("dy", "-.6em")
-          .attr("fill", "black")
-        ;  */
+      //add quarter names
+      .selectAll("text")
+      .style("text-anchor", "middle")
+      .attr("dx", "-1em")
+      .attr("dy", "-.6em")
+      .attr("fill", "black");
+
 
   svg.append("g")
     .attr("class", "y axis")
