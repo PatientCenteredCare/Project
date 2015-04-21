@@ -48,16 +48,17 @@
       .x.axis path {
         display: none;
       }
+
       .bin{
-        width: 1000px;
+        width: 1200px;
       }
       #vis{
         width: 1200px;
         margin-top: 40px;
       }
-      .dot.hidden{
+    /*  .dot,.circle{
         display:none;
-      }
+      }*/
       </style>
 
 </head>
@@ -136,9 +137,9 @@ Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/949031
 &
 officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
 */
-        var w = 440;
-        var h = 240;
-        var margin = {top: 15, right: 15, bottom: 130, left: 40}; /* Margin bottom needs to be 100 for text size*/
+        var w = 300;
+        var h = 200;
+        var margin = {top: 30, right: 30, bottom: 130, left: 40}; /* Margin bottom needs to be 100 for text size*/
         var color = d3.scale.category20b();
       /*  var color = d3.scale.linear()
           .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
@@ -156,7 +157,7 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
           .orient("bottom");
         var xAxisTime = d3.svg.axis()
           .scale(xScaleTime)
-          .orient("top");
+          .orient("bottom");
         var yAxis = d3.svg.axis()
           .scale(yScale)
           .orient("left")
@@ -182,7 +183,7 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
 // xScale domain
   xScale.domain(data.map(function(d) { return d.city; }));
   xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
-  
+
   // Add an SVG element for each measure, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
     .data(measures)
@@ -207,9 +208,19 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
 
 
 function multiple (measures) {
-  var svg = d3.select(this);
+  var svg = d3.select(this).append("g");
 
-  yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
+  /*function PtSatfix  (measures){ if (this == "PtSat"){
+                      return 300}
+                      else {
+                        return d3.max(measures.values, function(d) { return d.observed; })
+                      }
+                    };*/
+
+
+  yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
+                                                      else {return d.observed;};}
+                                                      )]);
 
 
 /*  var line = d3.svg.line()
@@ -243,10 +254,8 @@ function multiple (measures) {
   svg.selectAll(".dot")
       .data(function(d) {return measures.values;})
       .enter()
-      .append("g")
       .append("circle")
       .attr("class", "dot")
-      .attr("class", "hidden")
       .attr("class", "circle")
       .attr("cx", function(d) { return xScaleTime(d.timeframe); })
       .attr("cy", function(d) { return yScale(d.observed); })
@@ -260,6 +269,8 @@ function multiple (measures) {
       .attr("font-size", "1.1em")
       .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
       ;
+
+
 /*  svg.selectAll(".line")
       .data(function(d){return measures.values; })
       .enter()
@@ -285,19 +296,20 @@ function multiple (measures) {
       .attr("font-size", "0.85em")
       .attr("transform", "rotate(-90)")
       ;
+
   svg.append("g")
       //add quarter ticks
       .attr("class", "x axis")
-      .attr("class","hidden")
-      .attr("class", "dot")
-      .attr("transform", "translate(0," + 15 + ")")
+    /*  .attr("class","dot")*/
+      .attr("transform", "translate(0," + -15 + ")")
+      .attr("stroke", "none")
       .call(xAxisTime)
       //add quarter names
       .selectAll("text")
       .style("text-anchor", "middle")
       .attr("dx", "-1em")
       .attr("dy", "-.6em")
-      .attr("fill", "black");
+  /*    .attr("fill", "black")*/;
 
 
   svg.append("g")
@@ -344,13 +356,7 @@ function type(d) {
 }
 */
       </script>
-      <div class= "commentary">
-      <p>Heathcare acquired infections or HAIs are a significant issue, costing millions of dollars per year for the US taxpayers in serving veterans, by incurring additional costs per patient per hospital stay.
-
-
-<br>
-
-      </div>
+      
 
       <div class = "Discus">
     <div id="disqus_thread"></div>
