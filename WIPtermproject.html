@@ -181,8 +181,8 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
           console.log(measures["timeframe"]); //changed to timeframe
 // xScale domain
   xScale.domain(data.map(function(d) { return d.city; }));
-  xScaleTime.domain(measures.values.map(function(d){return d.timespan}));
-
+  xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
+  
   // Add an SVG element for each measure, with the desired dimensions and margin.
   var svg = d3.select("#vis").selectAll("svg")
     .data(measures)
