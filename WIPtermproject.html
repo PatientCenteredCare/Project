@@ -139,7 +139,7 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
 */
         var w = 300;
         var h = 200;
-        var margin = {top: 30, right: 30, bottom: 130, left: 40}; /* Margin bottom needs to be 100 for text size*/
+        var margin = {top: 50, right: 30, bottom: 130, left: 40}; /* Margin bottom needs to be 100 for text size*/
         var color = d3.scale.category20b();
       /*  var color = d3.scale.linear()
           .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
@@ -167,19 +167,16 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
             .x(function(d){return xScaleTime(d.timeframe);})
             .y(function(d){return yScale(d.observed);})
             ;
-/* could add add var tip code here for box that appears on hover */
+
 // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
 // DATA NESTED
           var measures = d3.nest()
-            .key(function(d) {
-                //if (d.timeframe === "4") {
-                  return d.measure; //}
-              //TRYING to put "else" here that will pull data being logged as undefined
-               })
+            .key(function(d) { return d.measure;})
+        /*  .key(function(d){return d.city;})*/
             .entries(data);
           console.log(measures);
-          console.log(measures["timeframe"]); //changed to timeframe
+
 // xScale domain
   xScale.domain(data.map(function(d) { return d.city; }));
   xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
@@ -199,7 +196,7 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
 //For MEASURE names
   svg.append("text")
     .attr("x", w/2)
-    .attr("y", 10)
+    .attr("y", -30)/*Moves it above the chart elements*/
     .style("text-anchor", "middle")
     .style("font-size", "1.5em")
     .style("font-weight", "bold")
@@ -210,18 +207,9 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
 function multiple (measures) {
   var svg = d3.select(this).append("g");
 
-  /*function PtSatfix  (measures){ if (this == "PtSat"){
-                      return 300}
-                      else {
-                        return d3.max(measures.values, function(d) { return d.observed; })
-                      }
-                    };*/
-
-
   yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
-                                                      else {return d.observed;};}
-                                                      )]);
-
+                                                      else {return d.observed;};}   )]);
+  console.log(measures.values[0]);
 
 /*  var line = d3.svg.line()
 
@@ -232,7 +220,6 @@ function multiple (measures) {
 
   svg.selectAll(".bar")
       .data(function(d) {return measures.values;})
-    /*  .filter(function(d) {return d.timeframe == 4;})*/
       .enter()
       .append("rect")
       .filter(function(d){return d.timeframe=="143";})
@@ -271,15 +258,14 @@ function multiple (measures) {
       ;
 
 
-/*  svg.selectAll(".line")
+  /*svg.selectAll(".linea")
       .data(function(d){return measures.values; })
+      .foreach(functiond.city)
       .enter()
       .append("g")
       .append("path")
-      .attr("class", "line")
-      .attr("class", function(d){return d.city;})
-      .attr("class", function(d){return d.timespan;})
-/*    .attr("d", line(measures.values))          ;*/
+      .attr("class", "linea")
+    .attr("d", line(d.values))          ;*/
 
 
   svg.append("g")
@@ -356,7 +342,7 @@ function type(d) {
 }
 */
       </script>
-      
+
 
       <div class = "Discus">
     <div id="disqus_thread"></div>
