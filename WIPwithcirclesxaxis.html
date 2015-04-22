@@ -78,21 +78,16 @@
 
     <div id="vis"></div>
   <script type="text/javascript">
-//START SCRIPT
-/*START SMALL MULTIPLES CODE*/
-/*
-Understanding and some code borrowed and adapted from:
-Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/9490313
-&
-officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
-*/
+                /*DEFINE VARIABLES*/
         var w = 300;
         var h = 200;
         var margin = {top: 15, right: 10, bottom: 100, left: 35}; /* Margin bottom needs to be 100 for text size*/
+
         var color = d3.scale.category20b();
-      /*  var color = d3.scale.linear()
+        /*  var color = d3.scale.linear()
           .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
           .domain([0,0.2,0.4,0.6,0.8]);*/
+
         var xScale = d3.scale.ordinal()
           .rangeRoundBands([0,w],.1);
 
@@ -120,189 +115,202 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
           .y(function(d){return yScale(d.observed);})
           ;
 
-/* could add add var tip code here for box that appears on hover */
-// DATA LOADED
-    d3.json('VAlargecities.json', function(data) {
-// DATA NESTED
+                  /* could add add var tip code here for box that appears on hover */
+                  // DATA LOADED
+      d3.json('VAlargecities.json', function(data) {
+                  // DATA NESTED
           var measures = d3.nest()
-            .key(function(d) {
-                //if (d.timeframe === "4") {
-                  return d.measure; //}
-              //TRYING to put "else" here that will pull data being logged as undefined
-               })
-            .entries(data);
+              .key(function(d) { return d.measure; })
+              .entries(data);
+
           console.log(measures);
-          console.log(measures["timeframe"]); //changed to timeframe
-// xScale domain
-    xScale.domain(data.map(function(d) { return d.city; }));
-    xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
+
+                  // xScale domain
+          xScale.domain(data.map(function(d) { return d.city; }));
+          xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
 
 
-  // Add an SVG element for each measure, with the desired dimensions and margin.
-  var svg = d3.select("#vis").selectAll("svg")
-    .data(measures)
-    .enter()
-    .append("svg")
-    .attr("width", w + margin.left + margin.right)
-    .attr("height", h + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-    .each(multiple);
-    /*.on("click", ) */
+                  // Add an SVG element for each measure, with the desired dimensions and margin.
+          var svg = d3.select("#vis").selectAll("svg")
+            .data(measures)
+            .enter()
+            .append("svg")
+            .attr("width", w + margin.left + margin.right)
+            .attr("height", h + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .each(makeBarCircle)
+            .each(makeLine);
+            /*.on("mouseover",  ) */
 
-//For MEASURE names
-  svg.append("text")
-    .attr("x", w/2)
-    .attr("y", 10)
-    .style("text-anchor", "left")
-    .style("font-size", "1.5em")
-    .style("font-weight", "bold")
-    .text(function(d) {return d.key});
-});
-
-
-function multiple (measures) {
-  var svg = d3.select(this);
-
-  yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
-
-  svg.selectAll(".bar")
-      .data(function(d) {return measures.values;})
-      .enter()
-      .append("g")
-      .append("rect")
-      .filter(function(d){return d.timeframe==4;})
-      .attr("class", "bar")
-      .attr("x", function(d) { return xScale(d.city); })
-      .attr("width", xScale.rangeBand() )
-      .attr("y", function(d) { return yScale(d.observed); })
-      .attr("height", function(d) { return h - yScale(d.observed); })
-      .attr("fill", function(d) {return color(d.city)})
-      .append("title")
-      .attr("x", w + 10)
-      .attr("y", h/3)
-      .attr("dy", ".71em")
-      .attr("text-anchor", "start")
-      .attr("font-size", "1.1em")
-      .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
-      ;
-
-    svg.selectAll(".dot")
-          .data(function(d) {return measures.values;})
-          .enter()
-          .append("g")
-          .append("circle")
-          .attr("class", "dot")
-          .attr("class", "hidden")
-          .attr("class", "circle")
-          .attr("cx", function(d) { return xScaleTime(d.timeframe); })
-          .attr("cy", function(d) { return yScale(d.observed); })
-          .attr("r", 2)
-          .attr("fill", function(d) {return color(d.city)})
-          .append("title")
-          .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
-          .attr("y", function(d) { return yScale(d.observed); }+2)
-          .attr("dy", ".71em")
-          .attr("text-anchor", "start")
-          .attr("font-size", "1.1em")
-          .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
-          ;
-  /*    svg.selectAll(".line")
-          .data(function(d) {return measures.values;})
-          .enter()
-          .append("path")
-          .attr("class", "hidden")
-          .attr("class", "line")
-          .attr("d", line(measures.values))
-          .attr("fill", function(d){return color(d.city)});
+                  //For MEASURE names
+          svg.append("text")
+            .attr("x", w/2)
+            .attr("y", 10)
+            .style("text-anchor", "left")
+            .style("font-size", "1.5em")
+            .style("font-weight", "bold")
+            .text(function(d) {return d.key});
+      });
 
 
-/*  svg..line.selectAll(".line")
-      .data(function(d){return measures.values; })
-      .enter()
-      .append("line");
-/*      .attr("class", "line")
-      .attr("class", function(d){return d.city;})
-      .attr("class", function(d){return d.timespan;})
-      .attr("x", function(d){return xScaleTime(d.timespan)})
-      .attr("y", function(d){return h-yScale(d.observed)})
-      .attr("stroke", function(d){return color(d.city)})
-      ;*/
+      function makeBarCircle (measures) {
+          var svg = d3.select(this).append("g");
+
+          yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
+                                                              else {return d.observed;};}   )]);
+
+          svg.selectAll(".bar")
+              .data(function(d) {return measures.values;})
+              .enter()
+              .append("rect")
+              .filter(function(d){return d.timeframe=="143";})
+              .attr("class", "bar")
+              .attr("x", function(d) { return xScale(d.city); })
+              .attr("width", xScale.rangeBand() )
+              .attr("y", function(d) { return yScale(d.observed); })
+              .attr("height", function(d) { return h - yScale(d.observed); })
+              .attr("fill", function(d) {return color(d.city)})
+              .append("title")
+              .attr("x", w + 10)
+              .attr("y", h/3)
+              .attr("dy", ".71em")
+              .attr("text-anchor", "start")
+              .attr("font-size", "1.1em")
+              .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
+              .on("click", function(d){ })
+              ;
+
+          svg.selectAll(".dot")
+              .data(function(d) {return measures.values;})
+              .enter()
+              .append("g")
+              .classed({"dot":true, "hidden": true, "circle": true})
+              .append("circle")
+              /*.attr("class", "dot")
+              .attr("class", "hidden")
+              .attr("class", "circle")*/
+              .attr("cx", function(d) { return xScaleTime(d.timeframe); })
+              .attr("cy", function(d) { return yScale(d.observed); })
+              .attr("r", 2)
+              .attr("fill", function(d) {return color(d.city)})
+              .append("title")
+              .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
+              .attr("y", function(d) { return yScale(d.observed); }+2)
+              .attr("dy", ".71em")
+              .attr("text-anchor", "start")
+              .attr("font-size", "1.1em")
+              .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
+              ;
+
+          svg.append("g")
+                            //add city ticks
+              .classed({"x axis":true})
+              .attr("transform", "translate(0," + h + ")")
+              .call(xAxis)
+                            //add city names
+              .selectAll("text")
+              .style("text-anchor", "end")
+              .attr("dx", "-1em")
+              .attr("dy", "-.6em")
+              .attr("fill", "black")
+              .attr("transform", "rotate(-90)")
+              ;
+
+          svg.append("g")
+                            //add quarter ticks
+              .classed({ "x axis":true, "hidden":true, "dot": true})
+              .attr("transform", "translate(0," + 15 + ")")
+              .call(xAxisTime)
+                          //add city names
+              .selectAll("text")
+              .style("text-anchor", "middle")
+              .attr("dx", "-1em")
+              .attr("dy", "-.6em")
+              .attr("fill", "black")
+              ;
+
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis)
+              .append("text")
+              .attr("x", w + 10)
+              .attr("y", h/3)
+              .attr("dy", ".71em")
+              .attr("text-anchor", "start")
+              .attr("font-size", "1.1em")
+              .text(function(d) { if
+                                      (d.measure == "PtSat"||"aLOS"){
+                                        return d.value;}
+                                              else {
+                                                  var p=d3.format("p");
+                                                  return p(d.value);
+                                                };
+                                                }
+                      );
+
+      };
+              // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
+                    // data(function(d) {return d.values;})
+                    // this will dereference the values for nested data for each group
+                    /*  svg.selectAll(".bar")
+                    .data(function(d) {return measures.values;})
+                    .data(function(d) {return d.timeframe == "4";})
+                    .enter()
+                    .append("rect")
+                    .attr("class", "bar")
+                    .attr("x", function(d) { return xScale(d.city); })
+                    .attr("width", xScale.rangeBand() )
+                    .attr("y", function(d) { return yScale(d.observed); })
+                    .attr("height", function(d) { return h - yScale(d); })
+                    .attr("fill", function(d) {return color(d.city)})
+                    /*.on("mouseover", display time series of selected city)
+                    .on("mouseoff", turn on)
+                    .on("click", zoom in and display time series of all cities data on bar chart, show legend)*/
 
 
-  svg.append("g")
-  //add city ticks
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + h + ")")
-      .call(xAxis)
-  //add city names
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-1em")
-      .attr("dy", "-.6em")
-      .attr("fill", "black")
-      .attr("transform", "rotate(-90)")
-      ;
-
-  svg.append("g")
-      //add quarter ticks
-      .attr("class", "x axis")
-      .attr("class","hidden")
-      .attr("class", "dot")
-      .attr("transform", "translate(0," + 15 + ")")
-      .call(xAxisTime)
-      //add city names
-          .selectAll("text")
-          .style("text-anchor", "middle")
-          .attr("dx", "-1em")
-          .attr("dy", "-.6em")
-          .attr("fill", "black")
-        ;
-
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis)
-    .append("text")
-    .attr("x", w + 10)
-    .attr("y", h/3)
-    .attr("dy", ".71em")
-    .attr("text-anchor", "start")
-    .attr("font-size", "1.1em")
-    .text(function(d) { return d./*measure to indicate what this is for*/value});
+                    /*
+                    function fourQtrs(d.city){
+                    x.domain
+                  }
+                  */
 
 
+      function makeLine (measures) {
+          var svg = d3.select(this);
 
-  // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
-  // data(function(d) {return d.values;})
-  // this will dereference the values for nested data for each group
-/*  svg.selectAll(".bar")
-      .data(function(d) {return measures.values;})
-      .data(function(d) {return d.timeframe == "4";})
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", function(d) { return xScale(d.city); })
-      .attr("width", xScale.rangeBand() )
-      .attr("y", function(d) { return yScale(d.observed); })
-      .attr("height", function(d) { return h - yScale(d); })
-      .attr("fill", function(d) {return color(d.city)})
-      /*.on("mouseover", display time series of selected city)
-      .on("mouseoff", turn on)
-      .on("click", zoom in and display time series of all cities data on bar chart, show legend)*/
-      ;
+          yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
-      /*
-      function fourQtrs(d.city){
-      x.domain
-    }
-      */
- };
+          console.log(measures.values);
+
+          var reNest = d3.nest()
+            .key(function(d){return d.city})
+            .entries(measures.values);
+
+          reNest.forEach(function(d){
+              svg.append("path")
+              .attr("class", "line")
+              .attr("d", line(d.values))
+              .attr("fill", function(d){return color(d.key)});
+            });
+          /*svg.selectAll(".line")
+            .data(function(d){return measures.values; })
+            .enter()
+            .append("path");
+            .classed({"line":true, "city":function(d){return d.city}, "qtr": function(d){return d.timespan} })
+            .attr("d", line(reNest))
+            .attr("stroke", function(d){return color(d.city)})
+            ;*/
+
+
+      };
 /*
-function type(d) {
-  d.percent = +d.percent;
-  return d;
-}
+Understanding and some code borrowed and adapted from:
+Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/9490313
+&
+officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
 */
+
       </script>
       <div class= "commentary">
       <p>Heathcare acquired infections or HAIs are a significant issue, costing millions of dollars per year for the US taxpayers in serving veterans, by incurring additional costs per patient per hospital stay. </p>
