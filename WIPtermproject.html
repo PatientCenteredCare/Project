@@ -37,7 +37,7 @@
         stroke: black;
         shape-rendering: crispEdges;
       }
-      .bar:hover {
+      rect:hover {
        fill: darkgrey;
        duration: 250ms;
       }
@@ -58,6 +58,9 @@
       }
       .dot.hidden{
         display:none;
+      }
+      .hidden{
+        opacity:.2;
       }
       .legend{
         font-size: 16px;
@@ -189,7 +192,9 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
             .attr("height", h + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-            .each(multiple);
+            .each(makeLine)
+            .each(makeBarCircle)
+            ;
             /*.on("click", ) */
 
               //For MEASURE names
@@ -228,7 +233,7 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
       });
 
 
-      function multiple (measures) {
+      function makeBarCircle (measures) {
         var svg = d3.select(this).append("g");
 
         yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
@@ -284,17 +289,6 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
           .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
           ;
 
-
-          /*svg.selectAll(".linea")
-            .data(function(d){return measures.values; })
-            .foreach(functiond.city)
-            .enter()
-            .append("g")
-            .append("path")
-            .attr("class", "linea")
-            .attr("d", line(d.values))          ;*/
-
-
           svg.append("g")
             //add city ticks
             .attr("class", "x axis")
@@ -335,8 +329,29 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
             .attr("text-anchor", "start")
             .attr("font-size", "1.1em")
             .text(function(d) { return d./*measure to indicate what this is for*/value});
+      };
 
+      function makeLine (measures) {
+        var svg = d3.select(this);
 
+        yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
+
+        console.log(measures.values);
+
+        var reNest = d3.nest()
+          .key(function(d){return d.city})
+          .entries(measures.values);
+
+        for (var i = 0; i < reNest.length; i++){
+          reNest.forEach(function(d){
+            svg.append("path")
+            .attr("class", function(d){console.log(reNest[i].key); return reNest[i].key;})
+            .attr("class", "hidden")
+            .attr("d", line(reNest[i].values))
+            .attr("fill", function(d){return color(reNest[i].key);});
+          });
+        };
+      };
   // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
   // data(function(d) {return d.values;})
   // this will dereference the values for nested data for each group
@@ -361,7 +376,8 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
       x.domain
     }
       */
- };
+
+
 /*
 function type(d) {
   d.percent = +d.percent;
