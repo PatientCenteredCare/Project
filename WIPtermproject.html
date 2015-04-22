@@ -60,12 +60,16 @@
         display:none;
       }
       .hidden{
-        opacity:.2;
+        display:none;
       }
       .legend{
         font-size: 16px;
         font-weight: bold;
         text-anchor: right;
+      }
+      .overlay {
+        fill: none;
+        pointer-events: all;
       }
       </style>
 
@@ -137,6 +141,8 @@ Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/949031
 officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
 http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
 */
+        var canvasW = 1200;
+        var canvasH = 1200;
         var w = 300;
         var h = 200;
         var margin = {top: 50, right: 30, bottom: 130, left: 40}; /* Margin bottom needs to be 100 for text size*/
@@ -184,7 +190,14 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
           xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
 
           // Add an SVG element for each measure, with the desired dimensions and margin.
-          var svg = d3.select("#vis").selectAll("svg")
+          var svg = d3.select("#vis")/*append("svg")
+            .attr("class", "canvas")
+            .attr("width", canvasW)
+            .attr("height", canvasH)
+            .append("g")*/
+            /*.call(d3.behavior.zoom().scaleExtent([1,8]).on("zoom", zoom))
+            .append("g")*/
+            .selectAll("svg")
             .data(measures)
             .enter()
             .append("svg")
@@ -193,21 +206,38 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
             .each(makeLine)
-            .each(makeBarCircle)
+            .each(makeBarCircle);
+        /*    .attr("transform", function(d){return "translate(" + d + ")";});*/
             ;
-            /*.on("click", ) */
 
-              //For MEASURE names
-          svg.append("text")
-            .attr("x", w/2)
-            .attr("y", -30)/*Moves it above the chart elements*/
-            .style("text-anchor", "middle")
-            .style("font-size", "1.5em")
-            .style("font-weight", "bold")
-            .text(function(d) {return d.key});
+            function zoom(){
+              svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            }
 
-            //ADD LEGEND
-          var legend = d3.select("vis").selectAll(".legend")
+
+             //ADD LEGEND
+          var legend = d3.select("#vis").append("svg")
+            .attr("class", "legend")
+            .attr("width", 300)
+            .attr("height", 200)
+            .selectAll("g")
+            .data(color.domain().slice().reverse())
+            .enter().append("g")
+            .attr("transform", function(d, i) { return "translate(0," + i * 5 + ")"; })
+
+          legend.append("rect")
+            .attr("width", 12)
+            .attr("height", 12)
+            .style("fill", color);
+
+          legend.append("text")
+            .attr("x", 10)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .text("text");
+
+
+          /*var legend = d3.select("vis").selectAll(".legend")
             .data(color.domain())
             .enter()
             .append("g")
@@ -226,10 +256,11 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
             .attr("height", legendRectSize)
             .attr("fill", color)
             .style("stroke", color);
+
           legend.append("text")
             .attr("x", legendRectSize + legendSpacing)
             .attr("y", legendRectSize - legendSpacing)
-            .text(function(d){return d.city});
+            .text(function(d){return d.city});*/
       });
 
 
@@ -239,6 +270,13 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
         yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
                                                       else {return d.observed;};}   )]);
 
+        svg.append("text")
+          .attr("x", w/2)
+          .attr("y", -30)/*Moves it above the chart elements*/
+          .style("text-anchor", "middle")
+          .style("font-size", "1.5em")
+          .style("font-weight", "bold")
+          .text(function(d) {return d.key});
 
 /*  var line = d3.svg.line()
 
@@ -248,6 +286,7 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
     ;*/
 
         svg.selectAll(".bar")
+          .append("g")
           .data(function(d) {return measures.values;})
           .enter()
           .append("g")
@@ -267,13 +306,17 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
           .attr("text-anchor", "start")
           .attr("font-size", "1.1em")
           .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
+          .on("click",function(){
+              d3.selectAll(".dot").classed("hidden", function(d,i){
+                      return !d3.select(this).classed("hidden")})})
           ;
 
         svg.selectAll(".dot")
+          .append("g")
           .data(function(d) {return measures.values;})
           .enter()
           .append('g')
-          .classed({"dot":true, "hidden": true, "circle": true, function(d){return d.city;}})
+          .classed({"dot":true, "hidden": true, "circle": true})
           .append("circle")
           .attr("class", function(d){return d.city})
           .attr("cx", function(d) { return xScaleTime(d.timeframe); })
@@ -306,7 +349,7 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
 
           svg.append("g")
             //add quarter ticks
-            .attr("class", "x axis")
+            .classed({"x axis":true, "dot":true, "hidden":true})
             /*  .attr("class","dot")*/
             .attr("transform", "translate(0," + -15 + ")")
             .attr("stroke", "none")
@@ -332,7 +375,9 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
       };
 
       function makeLine (measures) {
-        var svg = d3.select(this);
+        var svg = d3.select(this)
+          .append("g")
+          .attr("class", "line");
 
         yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
