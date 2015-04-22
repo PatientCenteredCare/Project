@@ -56,9 +56,14 @@
         width: 1200px;
         margin-top: 40px;
       }
-    /*  .dot,.circle{
+      .dot.hidden{
         display:none;
-      }*/
+      }
+      .legend{
+        font-size: 16px;
+        font-weight: bold;
+        text-anchor: right;
+      }
       </style>
 
 </head>
@@ -120,22 +125,14 @@
 
   <div id="vis"></div>
   <script type="text/javascript">
-//START SCRIPT
+
 /*START SMALL MULTIPLES CODE*/
-/* Flow of our code:
-  Get the data
-  Nest the data so that we have 5 small multiples of the data for 1 quarter with
-    a chart per HAI.
-  Iteratively build  SVG element per HAI
-  Iteratively populate the SVG with rectangles
-  Iteratively Add titles and axis
-  Add interaction
-  */
+
 /*
-Understanding and some code borrowed and adapted from:
+The authors gratefully acknowledge the labors of others in discovering how to implement this code:
 Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/9490313
-&
 officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
+http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
 */
         var w = 300;
         var h = 200;
@@ -163,53 +160,80 @@ officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/o
           .orient("left")
           .ticks(5);
 
-          var line = d3.svg.line()
+        var line = d3.svg.line()
             .x(function(d){return xScaleTime(d.timeframe);})
             .y(function(d){return yScale(d.observed);})
             ;
+        var legendSpacing = 4;
+        var legendRectSize = 18;
 
-// DATA LOADED
+                // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
-// DATA NESTED
+                // DATA NESTED
           var measures = d3.nest()
             .key(function(d) { return d.measure;})
         /*  .key(function(d){return d.city;})*/
             .entries(data);
           console.log(measures);
 
-// xScale domain
-  xScale.domain(data.map(function(d) { return d.city; }));
-  xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
+              // xScale domain
+          xScale.domain(data.map(function(d) { return d.city; }));
+          xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
 
-  // Add an SVG element for each measure, with the desired dimensions and margin.
-  var svg = d3.select("#vis").selectAll("svg")
-    .data(measures)
-    .enter()
-    .append("svg")
-    .attr("width", w + margin.left + margin.right)
-    .attr("height", h + margin.top + margin.bottom)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-    .each(multiple);
-    /*.on("click", ) */
+          // Add an SVG element for each measure, with the desired dimensions and margin.
+          var svg = d3.select("#vis").selectAll("svg")
+            .data(measures)
+            .enter()
+            .append("svg")
+            .attr("width", w + margin.left + margin.right)
+            .attr("height", h + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .each(multiple);
+            /*.on("click", ) */
 
-//For MEASURE names
-  svg.append("text")
-    .attr("x", w/2)
-    .attr("y", -30)/*Moves it above the chart elements*/
-    .style("text-anchor", "middle")
-    .style("font-size", "1.5em")
-    .style("font-weight", "bold")
-    .text(function(d) {return d.key});
-});
+              //For MEASURE names
+          svg.append("text")
+            .attr("x", w/2)
+            .attr("y", -30)/*Moves it above the chart elements*/
+            .style("text-anchor", "middle")
+            .style("font-size", "1.5em")
+            .style("font-weight", "bold")
+            .text(function(d) {return d.key});
+
+            //ADD LEGEND
+          var legend = d3.select("vis").selectAll(".legend")
+            .data(color.domain())
+            .enter()
+            .append("g")
+            .attr("class", "legend")
+            .append("text")
+            .attr('transform', function(d,i){
+                var height = legendRectsize + legendSpacing;
+                var offset = height * color.domain().length/2;
+                var horz = -2*legendRectSize;
+                var vert = i*height-offset;
+                return 'translate(' + horz + ',' + vert + ")";
+            });
+
+          legend.append('rect')
+            .attr("width", legendRectSize)
+            .attr("height", legendRectSize)
+            .attr("fill", color)
+            .style("stroke", color);
+          legend.append("text")
+            .attr("x", legendRectSize + legendSpacing)
+            .attr("y", legendRectSize - legendSpacing)
+            .text(function(d){return d.city});
+      });
 
 
-function multiple (measures) {
-  var svg = d3.select(this).append("g");
+      function multiple (measures) {
+        var svg = d3.select(this).append("g");
 
-  yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
+        yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
                                                       else {return d.observed;};}   )]);
-  console.log(measures.values[0]);
+
 
 /*  var line = d3.svg.line()
 
@@ -218,96 +242,99 @@ function multiple (measures) {
     .attr("stroke", function(d){return color(d.city)})
     ;*/
 
-  svg.selectAll(".bar")
-      .data(function(d) {return measures.values;})
-      .enter()
-      .append("rect")
-      .filter(function(d){return d.timeframe=="143";})
-      .attr("class", "bar")
-      .attr("x", function(d) { return xScale(d.city); })
-      .attr("width", xScale.rangeBand() )
-      .attr("y", function(d) { return yScale(d.observed); })
-      .attr("height", function(d) { return h - yScale(d.observed); })
-      .attr("fill", function(d) {return color(d.city)})
-      .append("title")
-      .attr("x", w + 10)
-      .attr("y", h/3)
-      .attr("dy", ".71em")
-      .attr("text-anchor", "start")
-      .attr("font-size", "1.1em")
-      .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
-      ;
+        svg.selectAll(".bar")
+          .data(function(d) {return measures.values;})
+          .enter()
+          .append("g")
+          .attr("class", "bar")
+          .append("rect")
+          .filter(function(d){return d.timeframe=="143";})
+          .attr("class", function(d){return d.city})
+          .attr("x", function(d) { return xScale(d.city); })
+          .attr("width", xScale.rangeBand() )
+          .attr("y", function(d) { return yScale(d.observed); })
+          .attr("height", function(d) { return h - yScale(d.observed); })
+          .attr("fill", function(d) {return color(d.city)})
+          .append("title")
+          .attr("x", w + 10)
+          .attr("y", h/3)
+          .attr("dy", ".71em")
+          .attr("text-anchor", "start")
+          .attr("font-size", "1.1em")
+          .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
+          ;
 
-  svg.selectAll(".dot")
-      .data(function(d) {return measures.values;})
-      .enter()
-      .append("circle")
-      .attr("class", "dot")
-      .attr("class", "circle")
-      .attr("cx", function(d) { return xScaleTime(d.timeframe); })
-      .attr("cy", function(d) { return yScale(d.observed); })
-      .attr("r", 2)
-      .attr("fill", function(d) {return color(d.city)})
-      .append("title")
-      .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
-      .attr("y", function(d) { return yScale(d.observed); }+2)
-      .attr("dy", ".71em")
-      .attr("text-anchor", "start")
-      .attr("font-size", "1.1em")
-      .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
-      ;
-
-
-  /*svg.selectAll(".linea")
-      .data(function(d){return measures.values; })
-      .foreach(functiond.city)
-      .enter()
-      .append("g")
-      .append("path")
-      .attr("class", "linea")
-    .attr("d", line(d.values))          ;*/
+        svg.selectAll(".dot")
+          .data(function(d) {return measures.values;})
+          .enter()
+          .append('g')
+          .classed({"dot":true, "hidden": true, "circle": true, function(d){return d.city;}})
+          .append("circle")
+          .attr("class", function(d){return d.city})
+          .attr("cx", function(d) { return xScaleTime(d.timeframe); })
+          .attr("cy", function(d) { return yScale(d.observed); })
+          .attr("r", 2)
+          .attr("fill", function(d) {return color(d.city)})
+          .append("title")
+          .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
+          .attr("y", function(d) { return yScale(d.observed); }+2)
+          .attr("dy", ".71em")
+          .attr("text-anchor", "start")
+          .attr("font-size", "1.1em")
+          .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
+          ;
 
 
-  svg.append("g")
-  //add city ticks
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + h + ")")
-      .call(xAxis)
-  //add city names
-      .selectAll("text")
-      .style("text-anchor", "end")
-      .attr("dx", "-1em")
-      .attr("dy", "-.48em")
-      .attr("fill", "black")
-      .attr("font-size", "0.85em")
-      .attr("transform", "rotate(-90)")
-      ;
-
-  svg.append("g")
-      //add quarter ticks
-      .attr("class", "x axis")
-    /*  .attr("class","dot")*/
-      .attr("transform", "translate(0," + -15 + ")")
-      .attr("stroke", "none")
-      .call(xAxisTime)
-      //add quarter names
-      .selectAll("text")
-      .style("text-anchor", "middle")
-      .attr("dx", "-1em")
-      .attr("dy", "-.6em")
-  /*    .attr("fill", "black")*/;
+          /*svg.selectAll(".linea")
+            .data(function(d){return measures.values; })
+            .foreach(functiond.city)
+            .enter()
+            .append("g")
+            .append("path")
+            .attr("class", "linea")
+            .attr("d", line(d.values))          ;*/
 
 
-  svg.append("g")
-    .attr("class", "y axis")
-    .call(yAxis)
-    .append("text")
-    .attr("x", w + 10)
-    .attr("y", h/3)
-    .attr("dy", ".71em")
-    .attr("text-anchor", "start")
-    .attr("font-size", "1.1em")
-    .text(function(d) { return d./*measure to indicate what this is for*/value});
+          svg.append("g")
+            //add city ticks
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + h + ")")
+            .call(xAxis)
+            //add city names
+            .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-1em")
+            .attr("dy", "-.48em")
+            .attr("fill", "black")
+            .attr("font-size", "0.85em")
+            .attr("transform", "rotate(-90)")
+            ;
+
+          svg.append("g")
+            //add quarter ticks
+            .attr("class", "x axis")
+            /*  .attr("class","dot")*/
+            .attr("transform", "translate(0," + -15 + ")")
+            .attr("stroke", "none")
+            .call(xAxisTime)
+            //add quarter names
+            .selectAll("text")
+            .style("text-anchor", "middle")
+            .attr("dx", "-1em")
+            .attr("dy", "-.6em")
+            /*    .attr("fill", "black")*/;
+
+
+          svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("x", w + 10)
+            .attr("y", h/3)
+            .attr("dy", ".71em")
+            .attr("text-anchor", "start")
+            .attr("font-size", "1.1em")
+            .text(function(d) { return d./*measure to indicate what this is for*/value});
 
 
   // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
