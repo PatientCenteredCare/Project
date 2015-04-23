@@ -378,12 +378,12 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .key(function(d){return d.city})
           .entries(measures.values);
 
-        reNest.forEach(function(d){
+        reNest.forEach(function(d,i){
           svg.append("path")
-            .attr("class", function(d){return d[0]}) //this doesn't work yet. want it to report the city
+            .attr("class", function(d){return reNest[i].key}) //this doesn't work yet. want it to report the city
             .attr("d", line(d.values))
             .attr("fill", "none") //this makes polgons
-            .attr("stroke", function(d){return color(d.values);});//this makes lines of the wrong color
+            .attr("stroke", function(d){return color(reNest[i].key);});//this makes lines of the wrong color
           });
 
       /*  for (var i = 0; i < reNest.length; i++){
