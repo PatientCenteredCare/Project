@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+<head>
+      <meta charset="utf-8">
+      <title>VAMC Quality Visualization</title>
+      <script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+      <link rel="stylesheet" type="text/css" href="stylesheet.css"/>
+
+      <!-- Google Analytics-->
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-60214562-2']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+    </script>
+    <style type="text/css">
+      * {
+        color: black;
+
+      }
+      body{
+        margin-left: 25px;
+        margin top: 25px;
+      }
+      .commentary{
+        width: 1000px;
+        height: 300px
+      }
+      .stage, .commentary{
+        width: 1000px;
+        text-align: justify;
+        text-justify: inter-word;
+        font-size: medium;
+      }
+      .axis path, .axis line {
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+      }
+      rect{
+        fill-opacity:1;
+      }
+      rect:hover {
+       fill: darkgrey;
+       duration: 250ms;
+      }
+      circle:hover {
+       fill: darkgrey ;
+       duration: 250ms;
+      }
+      path:hover{
+       stroke-width:3px;
+       duration: 250ms;
+      }
+      .x.axis path {
+        display: none;
+      }
+
+      .bin{
+        width: 1200px;
+      }
+      #vis{
+        width: 1200px;
+        margin-top: 40px;
+      }
+      .dot.hidden{
+      /*  display:none;*/
+      }
+      .hidden{
+        display:none;
+      }
+      .legend{
+        font-size: 16px;
+        font-weight: bold;
+        text-anchor: right;
+      }
+      .overlay {
+        fill: none;
+        pointer-events: all;
+      }
+      .authors{
+        font-style: italic;
+      }
+      </style>
+
+</head>
+
+  <body>
+    <div class = "header">
+    <h1>A New Way to See Healthcare Data</h2><h3 style = "large">A comparative look at medical centers</h3>
+    </div>
+    <div class = "stage">
+        <p> <strong><em>Patients </em></strong> have new opportunities to make good healthcare choices based on quality measures with the advances in big data and focus on patient centered care.
+          Information about healthcare associated infections (HAIs) are an important component of understanding the quality of care at a facility.  Not only do these HAIs increase direct care costs, they have a dramatic impact on the patient. An extension of a hospitalization, delay in restoration to health, and loss of income for the patient or the caregiver are some of the patient-centered HAI side effects.
+          Improving outcomes cannot be realized without the right tools to understand the data, turning it into information and then knowledge that results in better patient care. Looking across the country, mandated heathcare reporting varies from state to state.  Even within states, many quality measures are provided on a voluntary basis creating holes in the datasets.</p>
+        <p><strong>The Veterans Affairs (VA) Healthsystem Medical Centers </strong>as a federal agency fall under mandated federal reporting, providing a more complete dataset to compare the incience of HAIs across and within individual facilities.</p>
+        <h3>What are the tools that patients need to gain knowledge from this data?</h3>
+          <p>The current VA Hospital Compare website allows a user to compare quarterly scores between 2 facilities.
+          There are good questions that remain unanswered with this method. How has this facility changed over the past year? How does this facility compare to others within the region or nation?
+          Context is important.  We can learn more when we have the pieces integrated at the patient's fingertips. The following visualization shows an example of what we can do with more data presented in an integrated way.</p>
+        <p><em>Click on a small graph or bar to learn more about your VA medical centers:</em></p>
+    </div>
+
+<div>
+<table>
+  <tr>
+    <td><strong>Abbreviation</strong></td>
+    <td><strong>Full Measure Name</strong></td>
+    <td><strong>Explanation of Measurement</strong></td>
+  </tr>
+  <tr>
+    <td>CAUTI</td>
+    <td><a href="http://www.cdc.gov/HAI/ca_uti/uti.html">Catheter-associated urinary tract infection</a></td>
+    <td># of infections per 1000 device days (days/patient using a urinary catheter)</td>
+  </tr>
+  <tr>
+    <td>CLABSI</td>
+    <td><a href="http://www.cdc.gov/HAI/bsi/bsi.html">Central-line-associated blood stream infection</a></td>
+    <td># of infections per 1000 device days (days/patient using a central line)</td>
+  </tr>
+  <tr>
+    <td>MRSA</td>
+    <td><a href="http://www.cdc.gov/HAI/organisms/mrsa-infection.html">Methicillin-resistant Staphylocccus aureus</a></td>
+    <td># of infections per 1000</td>
+  </tr>
+  <tr>
+    <td>aLOS</td>
+    <td><a href="http://www.hospitalcompare.va.gov/docs/SAILMeasure_Definition_FY14Q3.docx">Adjusted Length of Stay</a></td>
+    <td>Measured in days per hospitalization adjusted for risk such as patient age</td>
+  </tr>
+  <tr>
+    <td>PtSat</td>
+    <td><a href="http://www.hospitalcompare.va.gov/docs/SAILMeasure_Definition_FY14Q3.docx">Patient Satisfaction</a></td>
+    <td>Measured by survey and is scored on a scale of 1 to 300</td>
+  </tr>
+</table>
+<br>
+<br>
+</div>
+
+
+
+  <div id="vis"></div>
+  <script type="text/javascript">
+
+/*START SMALL MULTIPLES CODE*/
+
+/*
+The authors gratefully acknowledge the labors of others in discovering how to implement this code:
+Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/9490313
+officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
+http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
+https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
+*/
+        var canvasW = 1200;
+        var canvasH = 1200;
+        var w = 300;
+        var h = 200;
+        var margin = {top: 50, right: 30, bottom: 130, left: 40}; /* Margin bottom needs to be 100 for text size*/
+        var color = d3.scale.category20b();
+      /*  var color = d3.scale.linear()
+          .range(["#ca0020","#f4a582","#f7f7f7","#92c5de","#0571b0"])
+          .domain([0,0.2,0.4,0.6,0.8]);*/
+        var xScale = d3.scale.ordinal()
+          .rangeRoundBands([0,w],.1);
+
+        var xScaleTime = d3.scale.ordinal()
+          .rangeRoundBands([0,w],.1);
+
+        var yScale = d3.scale.linear()
+          .range([h,0]);
+        var xAxis = d3.svg.axis()
+          .scale(xScale)
+          .orient("bottom");
+        var xAxisTime = d3.svg.axis()
+          .scale(xScaleTime)
+          .orient("bottom");
+        var yAxis = d3.svg.axis()
+          .scale(yScale)
+          .orient("left")
+          .ticks(5);
+
+        var line = d3.svg.line()
+            .x(function(d){return xScaleTime(d.timeframe);})
+            .y(function(d){return yScale(d.observed);})
+            .interpolate("linear")
+            ;
+        var legendSpacing = 4;
+        var legendRectSize = 18;
+        var clicked = false;
+
+                // DATA LOADED
+    d3.json('VAlargecities.json', function(data) {
+
+                // DATA NESTED
+          var measures = d3.nest()
+            .key(function(d) { return d.measure;})
+            .entries(data);
+
+              // xScale domain
+          xScale.domain(data.map(function(d) { return d.city; }));
+          xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
+
+          // Add an SVG element for each measure, with the desired dimensions and margin.
+          var svg = d3.select("#vis")/*append("svg")
+            .attr("class", "canvas")
+            .attr("width", canvasW)
+            .attr("height", canvasH)
+            .append("g")*/
+            /*.call(d3.behavior.zoom().scaleExtent([1,8]).on("zoom", zoom))
+            .append("g")*/
+            .selectAll("svg")
+            .data(measures)
+            .enter()
+            .append("svg")
+            .attr("width", w + margin.left + margin.right)
+            .attr("height", h + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+            .each(makeLine)
+            .each(makeBarCircle);
+        /*    .attr("transform", function(d){return "translate(" + d + ")";});*/
+            ;
+
+            function zoom(){
+              svg.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+            }
+
+
+             //ADD LEGEND
+          var legend = d3.select("#vis").append("svg")
+            .attr("class", "legend")
+            .attr("width", 300)
+            .attr("height", 200)
+            .selectAll("g")
+            .data(color.domain().slice().reverse())
+            .enter().append("g")
+            .attr("transform", function(d, i) { return "translate(0," + i * 5 + ")"; })
+
+          legend.append("rect")
+            .attr("width", 12)
+            .attr("height", 12)
+            .style("fill", color);
+
+          legend.append("text")
+            .attr("x", 10)
+            .attr("y", 9)
+            .attr("dy", ".35em")
+            .text("text");
+
+
+          /*var legend = d3.select("vis").selectAll(".legend")
+            .data(color.domain())
+            .enter()
+            .append("g")
+            .attr("class", "legend")
+            .append("text")
+            .attr('transform', function(d,i){
+                var height = legendRectsize + legendSpacing;
+                var offset = height * color.domain().length/2;
+                var horz = -2*legendRectSize;
+                var vert = i*height-offset;
+                return 'translate(' + horz + ',' + vert + ")";
+            });
+
+          legend.append('rect')
+            .attr("width", legendRectSize)
+            .attr("height", legendRectSize)
+            .attr("fill", color)
+            .style("stroke", color);
+
+          legend.append("text")
+            .attr("x", legendRectSize + legendSpacing)
+            .attr("y", legendRectSize - legendSpacing)
+            .text(function(d){return d.city});*/
+      });
+
+
+      function makeBarCircle (measures) {
+        var svg = d3.select(this).append("g");
+
+        yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
+                                                      else {return d.observed;};}   )]);
+
+        svg.append("text")
+          .attr("x", w/2)
+          .attr("y", -30)/*Moves it above the chart elements*/
+          .style("text-anchor", "middle")
+          .style("font-size", "1.5em")
+          .style("font-weight", "bold")
+          .text(function(d) {return d.key});
+
+        svg.selectAll(".bar")
+          .append("g")
+          .data(function(d) {return measures.values;})
+          .enter()
+          .append("g")
+          .attr("class", "bar")
+          .append("rect")
+          .filter(function(d){return d.timeframe=="143";})
+          .attr("class", function(d){return d.city})
+          .attr("x", function(d) { return xScale(d.city); })
+          .attr("width", xScale.rangeBand() )
+          .attr("y", function(d) { return yScale(d.observed); })
+          .attr("height", function(d) { return h - yScale(d.observed); })
+          .attr("fill", function(d) {return color(d.city)})
+          .append("title")
+          .attr("x", w + 10)
+          .attr("y", h/3)
+          .attr("dy", ".71em")
+          .attr("text-anchor", "start")
+          .attr("font-size", "1.1em")
+          .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
+          .on("click",function(){
+                if (clicked = false){
+                  d3.selectAll(".dot" && "path")
+                    .classed("hidden", function(d,i){
+                        return !d3.select(this).classed("hidden")});
+                  d3.selectAll("rect" != this)
+                    .attr("fill-opacity", .3);
+                  clicked = true;}
+                else {
+                  d3.selectAll("circle" && "path")
+                    .classed("hidden", function(d,i){
+                        return d3.select(this).classed("hidden")});
+                  d3.selectAll("rect" != this)
+                    .attr("fill-opacity", 1);
+                  clicked = true;}}
+                );
+
+        svg.selectAll(".dot")
+          .append("g")
+          .data(function(d) {return measures.values;})
+          .enter()
+          .append('g')
+          .classed({"dot":true, "hidden": false, "circle": true})
+          .append("circle")
+          .attr("class", function(d){return d.city})
+          .attr("cx", function(d) { return xScaleTime(d.timeframe); })
+          .attr("cy", function(d) { return yScale(d.observed); })
+          .attr("r", 3)
+          .attr("fill", function(d) {return color(d.city)})
+          .append("title")
+          .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
+          .attr("y", function(d) { return yScale(d.observed); }+2)
+          .attr("dy", ".71em")
+          .attr("text-anchor", "start")
+          .attr("font-size", "1.1em")
+          .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
+          ;
+
+          svg.append("g")
+            //add city ticks
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + h + ")")
+            .call(xAxis)
+            //add city names
+            .selectAll("text")
+            .style("text-anchor", "end")
+            .attr("dx", "-1em")
+            .attr("dy", "-.48em")
+            .attr("fill", "black")
+            .attr("font-size", "0.85em")
+            .attr("transform", "rotate(-90)")
+            ;
+
+          svg.append("g")
+            //add quarter ticks
+            .classed({"x axis":true, "dot":true, "hidden":false})
+            .attr("transform", "translate(0," + -15 + ")")
+            .attr("stroke", "none")
+            .call(xAxisTime)
+            //add quarter names
+            .selectAll("text")
+            .style("text-anchor", "middle")
+            .attr("dx", "-1em")
+            .attr("dy", "-.6em")
+            /*    .attr("fill", "black")*/;
+
+
+          svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+            .append("text")
+            .attr("x", w + 10)
+            .attr("y", h/3)
+            .attr("dy", ".71em")
+            .attr("text-anchor", "start")
+            .attr("font-size", "1.1em")
+            .text(function(d) { return d./*measure to indicate what this is for*/value});
+      };
+
+      function makeLine (measures) {
+        var svg = d3.select(this)
+          .append("g");
+
+        yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
+
+        //Renests the data so you iterate over each city using forEach
+        var reNest = d3.nest()
+          .key(function(d){return d.city})
+          .entries(measures.values);
+
+        reNest.forEach(function(d,i){
+          svg.append("path")
+            .attr("class", function(d){return reNest[i].key}) //this doesn't work yet. want it to report the city
+            .attr("d", line(d.values))
+            .attr("fill", "none") //this makes polgons
+            .attr("stroke", function(d){return color(reNest[i].key);})//this makes lines of the wrong color
+            .attr("stroke-width",1.5)
+            .append("title")
+            .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
+            .attr("y", function(d) { return yScale(d.observed); }+2)
+            .attr("dy", ".71em")
+            .attr("text-anchor", "start")
+            .attr("font-size", "1.1em")
+            .text(function(d){ return reNest[i].key;});
+          });
+
+      /*  for (var i = 0; i < reNest.length; i++){
+          reNest.forEach(function(d){
+            svg.append("path")
+            .attr("class", function(d){ return reNest[i].key;})
+            .attr("class", "hidden")
+            .attr("d", line(reNest[i].values))
+            .attr("fill", function(d){return color(reNest[i].key);});
+          });
+        };*/
+      };
+
+/*
+function type(d) {
+  d.percent = +d.percent;
+  return d;
+}
+*/
+      </script>
+      <div>
+        <p> Each city name represents a VA Medical Center at that community.  <a href="http://www.va.gov/QUALITYOFCARE/aspire-app.asp">For more on VA Medical Centers.</a></p>
+        <br></p>
+      </div>
+      <div class = "authors" >
+        <p>This visualization was created by <a href="http://patientcenteredcare.github.io/Project/">Katie Ernst and Amanda Hobbs</a> as part of the <a href="https://engineering.purdue.edu/IE">Industrial Engineering</a> graduate program at <a href="http://www.purdue.edu">Purdue University</a></p>
+        <p> Data from the <a href="http://www.va.gov/QUALITYOFCARE/measure-up/Strategic_Analytics_for_Improvement_and_Learning_SAIL.asp">US Dept of Veteran's Affairs SAIL program</a></p>
+      </div>
+      <div class = "Discus">
+    <div id="disqus_thread"></div>
+      <script type="text/javascript">
+          /* * * CONFIGURATION VARIABLES * * */
+          var disqus_shortname = 'patientcenteredcareviz';
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+          (function() {
+              var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+              dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+              (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+        </script>
+        <noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+    </div>
+    <div class = "discusCount">
+        <script type="text/javascript">
+          /* * * CONFIGURATION VARIABLES * * */
+          var disqus_shortname = 'patientcenteredcareviz';
+          /* * * DON'T EDIT BELOW THIS LINE * * */
+            (function () {
+              var s = document.createElement('script'); s.async = true;
+              s.type = 'text/javascript';
+              s.src = '//' + disqus_shortname + '.disqus.com/count.js';
+              (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s);
+            }());
+        </script>
+    </div>
+
+  </body>
+</html>
