@@ -57,7 +57,7 @@
         margin-top: 40px;
       }
       .dot.hidden{
-        display:none;
+      /*  display:none;*/
       }
       .hidden{
         display:none;
@@ -140,6 +140,7 @@ The authors gratefully acknowledge the labors of others in discovering how to im
 Michael Bostock's "Small Mutiples II" at https://gist.github.com/mbostock/9490313
 officeofjane's "Small multiple bar charts with tooltips" at http://bl.ocks.org/officeofjane/7315455
 http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
+https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 */
         var canvasW = 1200;
         var canvasH = 1200;
@@ -172,18 +173,18 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
         var line = d3.svg.line()
             .x(function(d){return xScaleTime(d.timeframe);})
             .y(function(d){return yScale(d.observed);})
+            .interpolate("linear")
             ;
         var legendSpacing = 4;
         var legendRectSize = 18;
 
                 // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
+
                 // DATA NESTED
           var measures = d3.nest()
             .key(function(d) { return d.measure;})
-        /*  .key(function(d){return d.city;})*/
             .entries(data);
-          console.log(measures);
 
               // xScale domain
           xScale.domain(data.map(function(d) { return d.city; }));
@@ -278,13 +279,6 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
           .style("font-weight", "bold")
           .text(function(d) {return d.key});
 
-/*  var line = d3.svg.line()
-
-    .x(function(d){return xScaleTime(d.timespan)})
-    .y(function(d){return h-yScale(d.observed)})
-    .attr("stroke", function(d){return color(d.city)})
-    ;*/
-
         svg.selectAll(".bar")
           .append("g")
           .data(function(d) {return measures.values;})
@@ -316,7 +310,7 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
           .data(function(d) {return measures.values;})
           .enter()
           .append('g')
-          .classed({"dot":true, "hidden": true, "circle": true})
+          .classed({"dot":true, "hidden": false, "circle": true})
           .append("circle")
           .attr("class", function(d){return d.city})
           .attr("cx", function(d) { return xScaleTime(d.timeframe); })
@@ -349,8 +343,7 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
 
           svg.append("g")
             //add quarter ticks
-            .classed({"x axis":true, "dot":true, "hidden":true})
-            /*  .attr("class","dot")*/
+            .classed({"x axis":true, "dot":true, "hidden":false})
             .attr("transform", "translate(0," + -15 + ")")
             .attr("stroke", "none")
             .call(xAxisTime)
@@ -376,52 +369,33 @@ http://zeroviscosity.com/d3-js-step-by-step/step-3-adding-a-legend
 
       function makeLine (measures) {
         var svg = d3.select(this)
-          .append("g")
-          .attr("class", "line");
+          .append("g");
 
         yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
-        console.log(measures.values);
-
+        //Renests the data so you iterate over each city using forEach
         var reNest = d3.nest()
           .key(function(d){return d.city})
           .entries(measures.values);
 
-        for (var i = 0; i < reNest.length; i++){
+        reNest.forEach(function(d){
+          svg.append("path")
+            .attr("class", function(d){return d[0]}) //this doesn't work yet. want it to report the city
+            .attr("d", line(d.values))
+            .attr("fill", "none") //this makes polgons
+            .attr("stroke", function(d){return color(d.values);});//this makes lines of the wrong color
+          });
+
+      /*  for (var i = 0; i < reNest.length; i++){
           reNest.forEach(function(d){
             svg.append("path")
-            .attr("class", function(d){console.log(reNest[i].key); return reNest[i].key;})
+            .attr("class", function(d){ return reNest[i].key;})
             .attr("class", "hidden")
             .attr("d", line(reNest[i].values))
             .attr("fill", function(d){return color(reNest[i].key);});
           });
-        };
+        };*/
       };
-  // Accessing nested data: https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
-  // data(function(d) {return d.values;})
-  // this will dereference the values for nested data for each group
-/*  svg.selectAll(".bar")
-      .data(function(d) {return measures.values;})
-      .data(function(d) {return d.timeframe == "4";})
-      .enter()
-      .append("rect")
-      .attr("class", "bar")
-      .attr("x", function(d) { return xScale(d.city); })
-      .attr("width", xScale.rangeBand() )
-      .attr("y", function(d) { return yScale(d.observed); })
-      .attr("height", function(d) { return h - yScale(d); })
-      .attr("fill", function(d) {return color(d.city)})
-      /*.on("mouseover", display time series of selected city)
-      .on("mouseoff", turn on)
-      .on("click", zoom in and display time series of all cities data on bar chart, show legend)*/
-      ;
-
-      /*
-      function fourQtrs(d.city){
-      x.domain
-    }
-      */
-
 
 /*
 function type(d) {
