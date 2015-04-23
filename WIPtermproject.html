@@ -41,8 +41,12 @@
        fill: darkgrey;
        duration: 250ms;
       }
-      .circle:hover {
+      circle:hover {
        fill: darkgrey ;
+       duration: 250ms;
+      }
+      path:hover{
+       stroke-width:3px;
        duration: 250ms;
       }
       .x.axis path {
@@ -315,7 +319,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("class", function(d){return d.city})
           .attr("cx", function(d) { return xScaleTime(d.timeframe); })
           .attr("cy", function(d) { return yScale(d.observed); })
-          .attr("r", 2)
+          .attr("r", 3)
           .attr("fill", function(d) {return color(d.city)})
           .append("title")
           .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
@@ -383,7 +387,15 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .attr("class", function(d){return reNest[i].key}) //this doesn't work yet. want it to report the city
             .attr("d", line(d.values))
             .attr("fill", "none") //this makes polgons
-            .attr("stroke", function(d){return color(reNest[i].key);});//this makes lines of the wrong color
+            .attr("stroke", function(d){return color(reNest[i].key);})//this makes lines of the wrong color
+            .attr("stroke-width",1.5)
+            .append("title")
+            .attr("x", function(d) { return xScaleTime(d.timeframe);} +2 )
+            .attr("y", function(d) { return yScale(d.observed); }+2)
+            .attr("dy", ".71em")
+            .attr("text-anchor", "start")
+            .attr("font-size", "1.1em")
+            .text(function(d){ return reNest[i].key;});
           });
 
       /*  for (var i = 0; i < reNest.length; i++){
