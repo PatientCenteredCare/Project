@@ -102,7 +102,7 @@
           <p>The current VA Hospital Compare website allows a user to compare quarterly scores between 2 facilities.
           There are good questions that remain unanswered with this method. How has this facility changed over the past year? How does this facility compare to others within the region or nation?
           Context is important.  We can learn more when we have the pieces integrated at the patient's fingertips. The following visualization shows an example of what we can do with more data presented in an integrated way.</p>
-        <p><em>Click on a small graph or bar to learn more about your VA medical centers:</em></p>
+        <p><em>Click on a small bar or hover over any element to learn more about your VA medical centers:</em></p>
     </div>
 
 <div>
@@ -308,6 +308,21 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("y", function(d) { return yScale(d.observed); })
           .attr("height", function(d) { return h - yScale(d.observed); })
           .attr("fill", function(d) {return color(d.city)})
+          .on("click",function(){
+            if (clicked = false){
+              d3.selectAll(".dot" && "path")
+                .classed("hidden", function(d,i){
+                    return !d3.select(this).classed("hidden")});
+              d3.selectAll("rect" != this)
+                .attr("fill-opacity", .3);
+              clicked = true;}
+            else {
+              d3.selectAll("circle" && "path")
+                .classed("hidden", function(d,i){
+                    return d3.select(this).classed("hidden")});
+              d3.selectAll("rect" != this)
+                .attr("fill-opacity", 1);
+              clicked = true;}})
           .append("title")
           .attr("x", w + 10)
           .attr("y", h/3)
@@ -315,22 +330,9 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("text-anchor", "start")
           .attr("font-size", "1.1em")
           .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
-          .on("click",function(){
-                if (clicked = false){
-                  d3.selectAll(".dot" && "path")
-                    .classed("hidden", function(d,i){
-                        return !d3.select(this).classed("hidden")});
-                  d3.selectAll("rect" != this)
-                    .attr("fill-opacity", .3);
-                  clicked = true;}
-                else {
-                  d3.selectAll("circle" && "path")
-                    .classed("hidden", function(d,i){
-                        return d3.select(this).classed("hidden")});
-                  d3.selectAll("rect" != this)
-                    .attr("fill-opacity", 1);
-                  clicked = true;}}
-                );
+
+                /*}*/
+                ;
 
         svg.selectAll(".dot")
           .append("g")
@@ -379,6 +381,12 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .style("text-anchor", "middle")
             .attr("dx", "-1em")
             .attr("dy", "-.6em")
+            .text(function(d){
+              it = d;
+              var year = it.slice(0, 2);
+              var qtr = it.slice(2);
+              return ("FY" + year + "Q"+ qtr);
+            });
             /*    .attr("fill", "black")*/;
 
 
