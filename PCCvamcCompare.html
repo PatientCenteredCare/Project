@@ -97,7 +97,7 @@
         <p> <strong><em>Patients </em></strong> have new opportunities to make good healthcare choices based on quality measures with the advances in big data and focus on patient centered care.
           Information about healthcare associated infections (HAIs) are an important component of understanding the quality of care at a facility.  Not only do these HAIs increase direct care costs, they have a dramatic impact on the patient. An extension of a hospitalization, delay in restoration to health, and loss of income for the patient or the caregiver are some of the patient-centered HAI side effects.
           Improving outcomes cannot be realized without the right tools to understand the data, turning it into information and then knowledge that results in better patient care. Looking across the country, mandated heathcare reporting varies from state to state.  Even within states, many quality measures are provided on a voluntary basis creating holes in the datasets.</p>
-        <p><strong>The Veterans Affairs (VA) Healthsystem Medical Centers </strong>as a federal agency fall under mandated federal reporting, providing a more complete dataset to compare the incience of HAIs across and within individual facilities.</p>
+        <p><strong>The Veterans Affairs (VA) Healthsystem Medical Centers </strong>as a federal agency fall under mandated federal reporting, providing a more complete dataset to compare the incidence of HAIs across and within individual facilities.</p>
         <h3>What are the tools that patients need to gain knowledge from this data?</h3>
           <p>The current VA Hospital Compare website allows a user to compare quarterly scores between 2 facilities.
           There are good questions that remain unanswered with this method. How has this facility changed over the past year? How does this facility compare to others within the region or nation?
@@ -191,7 +191,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             ;
         var legendSpacing = 4;
         var legendRectSize = 18;
-        var clicked = false;
+
 
                 // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
@@ -284,7 +284,9 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
         var svg = d3.select(this).append("g");
 
         yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
-                                                      else {return d.observed;};}   )]);
+                                                        else {return d.observed;};}   )]);
+
+        var clicked = false;
 
         svg.append("text")
           .attr("x", w/2)
@@ -308,8 +310,10 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("y", function(d) { return yScale(d.observed); })
           .attr("height", function(d) { return h - yScale(d.observed); })
           .attr("fill", function(d) {return color(d.city)})
-          .on("click", function(){
-                toggle();})
+          .on("mouseover", function(){
+                mouseon();})
+          .on("mouseout", function(){
+                mouseoff();})
           .append("title")
           .attr("x", w + 10)
           .attr("y", h/3)
@@ -320,29 +324,28 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
 
 
-        var toggle = function(){
-          if (clicked = false){
+        var mouseon = function(){
+
               d3.selectAll(".dot,.path") //selects items that have either .dot or .path
-                .classed("hidden", function(d,i){
-                    return !d3.select(this).classed("hidden")});
-                d3.selectAll("rect" != this)
-                  .attr("fill-opacity", .3);
-                clicked = true;}
-          else if (clicked = true) {
-              d3.selectAll("circle,path")
-                .classed("hidden", function(d,i){
-                    return d3.select(this).classed("hidden")});
-              d3.selectAll("rect" != this)
-                .attr("fill-opacity", 1);
-              clicked = true;}}
-              ;
+                .classed("hidden", false);
+              d3.selectAll(".bar")
+                  .style("fill-opacity", .3);
+              d3.select(this).attr("fill-opacity",1);};
+        var mouseoff = function(){
+
+              d3.selectAll(".dot,.path")
+                .classed("hidden", true);
+              d3.selectAll(".bar")
+                .style("fill-opacity", 1);
+              };
+
 
         svg.selectAll(".dot")
           .append("g")
           .data(function(d) {return measures.values;})
           .enter()
           .append('g')
-          .classed({"dot":true, "hidden": false, "circle": true})
+          .classed({"dot":true, "hidden": true, "circle": true})
           .append("circle")
           .attr("class", function(d){return d.city})
           .attr("cx", function(d) { return xScaleTime(d.timeframe); })
@@ -375,7 +378,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
           svg.append("g")
             //add quarter ticks
-            .classed({"x axis":true, "dot":true, "hidden":false})
+            .classed({"x axis":true, "dot":true, "hidden":true})
             .attr("transform", "translate(0," + -15 + ")")
             .attr("stroke", "none")
             .call(xAxisTime)
@@ -408,7 +411,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
       function makeLine (measures) {
         var svg = d3.select(this)
           .append("g")
-          .attr("class", "path");
+          .classed({"path":true, "hidden": true});
 
         yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
