@@ -235,11 +235,11 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           var legend = d3.select("#vis").append("svg")
             .attr("class", "legend")
             .attr("width", 300)
-            .attr("height", 200)
+            .attr("height", 375)
             .selectAll("g")
             .data(color.domain().slice().reverse())
             .enter().append("g")
-            .attr("transform", function(d, i) { return "translate(0," + i * 5 + ")"; })
+            .attr("transform", function(d, i) { return "translate(0," + i * 15 + ")"; })
 
           legend.append("rect")
             .attr("width", 12)
@@ -249,8 +249,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           legend.append("text")
             .attr("x", 10)
             .attr("y", 9)
-            .attr("dy", ".35em")
-            .text("text");
+            .attr("dy", ".15em")
+            .text(function(d){return d});
 
 
           /*var legend = d3.select("vis").selectAll(".legend")
@@ -308,31 +308,34 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("y", function(d) { return yScale(d.observed); })
           .attr("height", function(d) { return h - yScale(d.observed); })
           .attr("fill", function(d) {return color(d.city)})
-          .on("click",function(){
-            if (clicked = false){
-              d3.selectAll(".dot" && "path")
-                .classed("hidden", function(d,i){
-                    return !d3.select(this).classed("hidden")});
-              d3.selectAll("rect" != this)
-                .attr("fill-opacity", .3);
-              clicked = true;}
-            else {
-              d3.selectAll("circle" && "path")
-                .classed("hidden", function(d,i){
-                    return d3.select(this).classed("hidden")});
-              d3.selectAll("rect" != this)
-                .attr("fill-opacity", 1);
-              clicked = true;}})
+          .on("click", function(){
+                toggle();})
           .append("title")
           .attr("x", w + 10)
           .attr("y", h/3)
           .attr("dy", ".71em")
           .attr("text-anchor", "start")
           .attr("font-size", "1.1em")
-          .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
+          .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;});
 
-                /*}*/
-                ;
+
+
+        var toggle = function(){
+          if (clicked = false){
+              d3.selectAll(".dot,.path") //selects items that have either .dot or .path
+                .classed("hidden", function(d,i){
+                    return !d3.select(this).classed("hidden")});
+                d3.selectAll("rect" != this)
+                  .attr("fill-opacity", .3);
+                clicked = true;}
+          else if (clicked = true) {
+              d3.selectAll("circle,path")
+                .classed("hidden", function(d,i){
+                    return d3.select(this).classed("hidden")});
+              d3.selectAll("rect" != this)
+                .attr("fill-opacity", 1);
+              clicked = true;}}
+              ;
 
         svg.selectAll(".dot")
           .append("g")
@@ -404,7 +407,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
       function makeLine (measures) {
         var svg = d3.select(this)
-          .append("g");
+          .append("g")
+          .attr("class", "path");
 
         yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
