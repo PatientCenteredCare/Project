@@ -191,7 +191,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             ;
         var legendSpacing = 4;
         var legendRectSize = 18;
-        var clicked = false;
+
 
                 // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
@@ -284,7 +284,9 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
         var svg = d3.select(this).append("g");
 
         yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
-                                                      else {return d.observed;};}   )]);
+                                                        else {return d.observed;};}   )]);
+
+        var clicked = false;
 
         svg.append("text")
           .attr("x", w/2)
@@ -308,8 +310,10 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("y", function(d) { return yScale(d.observed); })
           .attr("height", function(d) { return h - yScale(d.observed); })
           .attr("fill", function(d) {return color(d.city)})
-          .on("click", function(){
-                toggle();})
+          .on("mouseover", function(){
+                mouseon();})
+          .on("mouseout", function(){
+                mouseoff();})
           .append("title")
           .attr("x", w + 10)
           .attr("y", h/3)
@@ -320,29 +324,28 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
 
 
-        var toggle = function(){
-          if (clicked = false){
+        var mouseon = function(){
+
               d3.selectAll(".dot,.path") //selects items that have either .dot or .path
-                .classed("hidden", function(d,i){
-                    return !d3.select(this).classed("hidden")});
-                d3.selectAll("rect" != this)
-                  .attr("fill-opacity", .3);
-                clicked = true;}
-          else if (clicked = true) {
-              d3.selectAll("circle,path")
-                .classed("hidden", function(d,i){
-                    return d3.select(this).classed("hidden")});
-              d3.selectAll("rect" != this)
-                .attr("fill-opacity", 1);
-              clicked = true;}}
-              ;
+                .classed("hidden", false);
+              d3.selectAll(".bar")
+                  .style("fill-opacity", .3);
+              d3.select(this).attr("fill-opacity",1);};
+        var mouseoff = function(){
+
+              d3.selectAll(".dot,.path")
+                .classed("hidden", true);
+              d3.selectAll(".bar")
+                .style("fill-opacity", 1);
+              };
+
 
         svg.selectAll(".dot")
           .append("g")
           .data(function(d) {return measures.values;})
           .enter()
           .append('g')
-          .classed({"dot":true, "hidden": false, "circle": true})
+          .classed({"dot":true, "hidden": true, "circle": true})
           .append("circle")
           .attr("class", function(d){return d.city})
           .attr("cx", function(d) { return xScaleTime(d.timeframe); })
@@ -375,7 +378,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
           svg.append("g")
             //add quarter ticks
-            .classed({"x axis":true, "dot":true, "hidden":false})
+            .classed({"x axis":true, "dot":true, "hidden":true})
             .attr("transform", "translate(0," + -15 + ")")
             .attr("stroke", "none")
             .call(xAxisTime)
@@ -408,7 +411,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
       function makeLine (measures) {
         var svg = d3.select(this)
           .append("g")
-          .attr("class", "path");
+          .classed({"path":true, "hidden": true});
 
         yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
