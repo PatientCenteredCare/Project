@@ -102,7 +102,7 @@
           <p>The current VA Hospital Compare website allows a user to compare quarterly scores between 2 facilities.
           There are good questions that remain unanswered with this method. How has this facility changed over the past year? How does this facility compare to others within the region or nation?
           Context is important.  We can learn more when we have the pieces integrated at the patient's fingertips. The following visualization shows an example of what we can do with more data presented in an integrated way.</p>
-        <p><em>Click on a small graph or bar to learn more about your VA medical centers:</em></p>
+        <p><em>Click on a small bar or hover over any element to learn more about your VA medical centers:</em></p>
     </div>
 
 <div>
@@ -235,11 +235,11 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           var legend = d3.select("#vis").append("svg")
             .attr("class", "legend")
             .attr("width", 300)
-            .attr("height", 200)
+            .attr("height", 375)
             .selectAll("g")
             .data(color.domain().slice().reverse())
             .enter().append("g")
-            .attr("transform", function(d, i) { return "translate(0," + i * 5 + ")"; })
+            .attr("transform", function(d, i) { return "translate(0," + i * 15 + ")"; })
 
           legend.append("rect")
             .attr("width", 12)
@@ -249,8 +249,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           legend.append("text")
             .attr("x", 10)
             .attr("y", 9)
-            .attr("dy", ".35em")
-            .text("text");
+            .attr("dy", ".15em")
+            .text(function(d){return d});
 
 
           /*var legend = d3.select("vis").selectAll(".legend")
@@ -308,29 +308,34 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("y", function(d) { return yScale(d.observed); })
           .attr("height", function(d) { return h - yScale(d.observed); })
           .attr("fill", function(d) {return color(d.city)})
+          .on("click", function(){
+                toggle();})
           .append("title")
           .attr("x", w + 10)
           .attr("y", h/3)
           .attr("dy", ".71em")
           .attr("text-anchor", "start")
           .attr("font-size", "1.1em")
-          .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;})
-          .on("click",function(){
-                if (clicked = false){
-                  d3.selectAll(".dot" && "path")
-                    .classed("hidden", function(d,i){
-                        return !d3.select(this).classed("hidden")});
-                  d3.selectAll("rect" != this)
-                    .attr("fill-opacity", .3);
-                  clicked = true;}
-                else {
-                  d3.selectAll("circle" && "path")
-                    .classed("hidden", function(d,i){
-                        return d3.select(this).classed("hidden")});
-                  d3.selectAll("rect" != this)
-                    .attr("fill-opacity", 1);
-                  clicked = true;}}
-                );
+          .text(function(d){ return d.city + ", " + d.measure + ": " + d.observed;});
+
+
+
+        var toggle = function(){
+          if (clicked = false){
+              d3.selectAll(".dot,.path") //selects items that have either .dot or .path
+                .classed("hidden", function(d,i){
+                    return !d3.select(this).classed("hidden")});
+                d3.selectAll("rect" != this)
+                  .attr("fill-opacity", .3);
+                clicked = true;}
+          else if (clicked = true) {
+              d3.selectAll("circle,path")
+                .classed("hidden", function(d,i){
+                    return d3.select(this).classed("hidden")});
+              d3.selectAll("rect" != this)
+                .attr("fill-opacity", 1);
+              clicked = true;}}
+              ;
 
         svg.selectAll(".dot")
           .append("g")
@@ -379,6 +384,12 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .style("text-anchor", "middle")
             .attr("dx", "-1em")
             .attr("dy", "-.6em")
+            .text(function(d){
+              it = d;
+              var year = it.slice(0, 2);
+              var qtr = it.slice(2);
+              return ("FY" + year + "Q"+ qtr);
+            });
             /*    .attr("fill", "black")*/;
 
 
@@ -396,7 +407,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
       function makeLine (measures) {
         var svg = d3.select(this)
-          .append("g");
+          .append("g")
+          .attr("class", "path");
 
         yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
