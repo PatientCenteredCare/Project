@@ -204,9 +204,25 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
               // xScale domain
           xScale.domain(data.map(function(d) { return d.city; }));
           xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
+          var clicked = false;
+
+
+          var mouseon = function(){
+              d3.selectAll(".dot,.path") //selects items that have either .dot or .path
+                .classed("hidden", false);
+              d3.selectAll("rect")
+                .style("fill-opacity", .3);
+              };
+          var mouseoff = function(){
+              d3.selectAll(".dot,.path")
+                .classed("hidden", true);
+              d3.selectAll("rect")
+                .style("fill-opacity", 1);
+              };
 
           // Add an SVG element for each measure, with the desired dimensions and margin.
-          var svg = d3.select("#vis")/*append("svg")
+          var svg = d3.select("#vis")
+            .classed("clicked", false)/*append("svg")
             .attr("class", "canvas")
             .attr("width", canvasW)
             .attr("height", canvasH)
@@ -221,8 +237,9 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .attr("height", h + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-            .each(makeLine)
-            .each(makeBarCircle);
+            .each(makeAxis)
+            .each(makeLineCircle)
+            .each(makeBar);
         /*    .attr("transform", function(d){return "translate(" + d + ")";});*/
             ;
 
@@ -234,7 +251,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
              //ADD LEGEND
           var legend = d3.select("#vis").append("svg")
             .attr("class", "legend")
-            .attr("width", 300)
+            .attr("width", 110)
             .attr("height", 375)
             .selectAll("g")
             .data(color.domain().slice().reverse())
@@ -252,42 +269,40 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .attr("dy", ".15em")
             .text(function(d){return d});
 
+          var toggle = d3.select("#vis").append("svg")
+            .attr("class", "toggle")
+            .attr("width", 110)
+            .attr("height", 350);
 
-          /*var legend = d3.select("vis").selectAll(".legend")
-            .data(color.domain())
-            .enter()
-            .append("g")
-            .attr("class", "legend")
-            .append("text")
-            .attr('transform', function(d,i){
-                var height = legendRectsize + legendSpacing;
-                var offset = height * color.domain().length/2;
-                var horz = -2*legendRectSize;
-                var vert = i*height-offset;
-                return 'translate(' + horz + ',' + vert + ")";
-            });
+          toggle.append("ellipse")
+            .attr("cx", 55)
+            .attr("cy", 40)
+            .attr("rx", 55)
+            .attr("ry", 20)
+            .attr("fill", "steelblue")
+            .text("Click to compare Cities for FY14Q3")
+            .attr("stroke", "black")
+            .on("click", function(){
+                  mouseoff();});
 
-          legend.append('rect')
-            .attr("width", legendRectSize)
-            .attr("height", legendRectSize)
-            .attr("fill", color)
-            .style("stroke", color);
+          toggle.append("ellipse")
+            .attr("cx", 55)
+            .attr("cy", 95)
+            .attr("rx", 55)
+            .attr("ry", 20)
+            .attr("fill", "steelblue")
+            .text("Click to see over 1 year")
+            .attr("stroke", "black")
+            .on("mouseover", function(){
+                  mouseon();});
 
-          legend.append("text")
-            .attr("x", legendRectSize + legendSpacing)
-            .attr("y", legendRectSize - legendSpacing)
-            .text(function(d){return d.city});*/
       });
 
-
-      function makeBarCircle (measures) {
+      function makeAxis(measures){
         var svg = d3.select(this).append("g");
 
         yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
                                                         else {return d.observed;};}   )]);
-
-        var clicked = false;
-
         svg.append("text")
           .attr("x", w/2)
           .attr("y", -30)/*Moves it above the chart elements*/
@@ -295,6 +310,73 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .style("font-size", "1.5em")
           .style("font-weight", "bold")
           .text(function(d) {return d.key});
+
+        svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+          .append("text")
+          .attr("x", w + 10)
+          .attr("y", h/3)
+          .attr("dy", ".71em")
+          .attr("text-anchor", "start")
+          .attr("font-size", "1.1em")
+          .text(function(d) { return d./*measure to indicate what this is for*/value});
+
+        svg.append("g")
+          //add city ticks
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + h + ")")
+          .call(xAxis)
+          //add city names
+          .selectAll("text")
+          .style("text-anchor", "end")
+          .attr("dx", "-1em")
+          .attr("dy", "-.48em")
+          .attr("fill", "black")
+          .attr("font-size", "0.85em")
+          .attr("transform", "rotate(-90)")
+            ;
+
+      };
+
+      function makeBar (measures) {
+        var svg = d3.select(this).append("g");
+
+        yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
+                                                        else {return d.observed;};}   )]);
+
+
+
+        var mouseon = function(){
+
+              d3.selectAll(".dot,.path") //selects items that have either .dot or .path
+                .classed("hidden", false);
+              d3.selectAll("rect")
+                  .style("fill-opacity", .3);
+              d3.select(this).style("fill-opacity", 1);};
+        var mouseoff = function(){
+
+              d3.selectAll(".dot,.path")
+                .classed("hidden", true);
+              d3.selectAll("rect")
+                .style("fill-opacity", 1);
+              };
+
+        var showLines = function(){
+            if (d3.select("#vis").classed("clicked") = false){
+              d3.selectAll(".dot,.path")
+                .classed("hidden", false);
+              d3.selectAll("rect")
+                .style("fill-opacity", .3);
+              clicked = true;}
+            else if (d3.select("#vis").classed("clicked") = true) {
+              d3.selectAll(".dot,.path")
+                .classed("hidden", true);
+              d3.selectAll("rect")
+                .style("fill-opacity", 1);
+              clicked = false;
+                };
+              };
 
         svg.selectAll(".bar")
           .append("g")
@@ -310,10 +392,12 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("y", function(d) { return yScale(d.observed); })
           .attr("height", function(d) { return h - yScale(d.observed); })
           .attr("fill", function(d) {return color(d.city)})
-          .on("mouseover", function(){
+          /*.on("mouseover", function(){
                 mouseon();})
           .on("mouseout", function(){
                 mouseoff();})
+          .on("click", function(){
+                showLines();})*/
           .append("title")
           .attr("x", w + 10)
           .attr("y", h/3)
@@ -324,21 +408,13 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
 
 
-        var mouseon = function(){
+      };
 
-              d3.selectAll(".dot,.path") //selects items that have either .dot or .path
-                .classed("hidden", false);
-              d3.selectAll(".bar")
-                  .style("fill-opacity", .3);
-              d3.select(this).attr("fill-opacity",1);};
-        var mouseoff = function(){
+      function makeLineCircle (measures) {
+        var svg = d3.select(this)
+          .append("g");
 
-              d3.selectAll(".dot,.path")
-                .classed("hidden", true);
-              d3.selectAll(".bar")
-                .style("fill-opacity", 1);
-              };
-
+        yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
         svg.selectAll(".dot")
           .append("g")
@@ -360,22 +436,6 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .attr("font-size", "1.1em")
           .text(function(d){ return d.city + " has a " +d.measure+ " value of " + d.observed;})
           ;
-
-          svg.append("g")
-            //add city ticks
-            .attr("class", "x axis")
-            .attr("transform", "translate(0," + h + ")")
-            .call(xAxis)
-            //add city names
-            .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-1em")
-            .attr("dy", "-.48em")
-            .attr("fill", "black")
-            .attr("font-size", "0.85em")
-            .attr("transform", "rotate(-90)")
-            ;
-
           svg.append("g")
             //add quarter ticks
             .classed({"x axis":true, "dot":true, "hidden":true})
@@ -393,27 +453,6 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
               var qtr = it.slice(2);
               return ("FY" + year + "Q"+ qtr);
             });
-            /*    .attr("fill", "black")*/;
-
-
-          svg.append("g")
-            .attr("class", "y axis")
-            .call(yAxis)
-            .append("text")
-            .attr("x", w + 10)
-            .attr("y", h/3)
-            .attr("dy", ".71em")
-            .attr("text-anchor", "start")
-            .attr("font-size", "1.1em")
-            .text(function(d) { return d./*measure to indicate what this is for*/value});
-      };
-
-      function makeLine (measures) {
-        var svg = d3.select(this)
-          .append("g")
-          .classed({"path":true, "hidden": true});
-
-        yScale.domain([0, d3.max(measures.values, function(d) { return d.observed; })]);
 
         //Renests the data so you iterate over each city using forEach
         var reNest = d3.nest()
@@ -421,7 +460,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .entries(measures.values);
 
         reNest.forEach(function(d,i){
-          svg.append("path")
+          svg.classed({"path":true, "hidden": true})
+            .append("path")
             .attr("class", function(d){return reNest[i].key}) //this doesn't work yet. want it to report the city
             .attr("d", line(d.values))
             .attr("fill", "none") //this makes polgons
