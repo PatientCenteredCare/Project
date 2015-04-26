@@ -93,6 +93,19 @@
 </head>
 
   <body>
+
+    <!--THE FOLLOWING 8 LINES ARE FOR FACEBOOK PLUGIN-->
+    <div id="fb-root"></div>
+    <script>(function(d, s, id) {
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s); js.id = id;
+      js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.3";
+      fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));</script>
+
+
+
     <div class = "header">
     <h1>A New Way to See Healthcare Data</h2><h3 style = "large">A comparative look at medical centers</h3>
     </div>
@@ -154,6 +167,10 @@
     <p> <br><br><br> <a href="http://www.va.gov/QUALITYOFCARE/aspire-app.asp">For more on VA Medical Centers.</a></p>
     <br></p>
   </div>
+
+<!--THIS PLACES THE FACEBOOK PLUGIN-->
+  <div class="fb-comments" data-href="http://developers.facebook.com/docs/plugins/comments/" data-width="800" data-numposts="10" data-colorscheme="light"></div>
+
   <script type="text/javascript">
 
 /*START SMALL MULTIPLES CODE*/
