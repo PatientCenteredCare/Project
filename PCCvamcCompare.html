@@ -121,7 +121,7 @@
           There are good questions that remain unanswered with this method. How has this facility changed over the past year? How does this facility compare to others within the region or nation?
           Context is important.  We can learn more when we have the pieces integrated at the patient's fingertips. The following visualization shows an example of what we can do with more data presented in an integrated way.</p>
         <p>Each city name represents a VA Medical Center at that community.</p>
-        <p><em> Click on the blue buttons to switch views or hover to see the value for that VA Medical Center</em></p>
+        <p><em> Click on the blue buttons under the graphs to switch views or hover to see the value for that VA Medical Center</em></p>
     </div>
 
 <div>
@@ -194,7 +194,7 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           .rangeRoundBands([0,w],.1);
 
         var xScaleTime = d3.scale.ordinal()
-          .rangeRoundBands([0,w],.1);
+          .rangeRoundBands([w,0],.1);
 
         var yScale = d3.scale.linear()
           .range([h,0]);
@@ -218,15 +218,15 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
         var legendRectSize = 18;
 
 
-                // DATA LOADED
+            // DATA LOADED
     d3.json('VAlargecities.json', function(data) {
 
-                // DATA NESTED
+            // DATA NESTED
           var measures = d3.nest()
             .key(function(d) { return d.measure;})
             .entries(data);
 
-              // xScale domain
+            // xScale domain
           xScale.domain(data.map(function(d) { return d.city; }));
           xScaleTime.domain(data.map(function(d) { return d.timeframe; }));
           var clicked = false;
@@ -302,7 +302,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .attr("width", 110)
             .attr("height", 110)
             .style("float", "right")
-            .attr("background-color", "steelblue")
+            .attr("background-color", "white")
+            .attr("border", "2px solid black")
             .on("click", function(){
                   showQtr();})
             .append("p")
@@ -315,7 +316,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
             .attr("width", 110)
             .attr("height", 110)
             .style("float", "right")
-            .attr("background-color", "steelblue")
+            .attr("background-color", "white")
+            .attr("border", "2px solid black")
             .on("mouseover", function(){
                   showTrend();})
             .append("p")
@@ -328,7 +330,8 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
         var svg = d3.select(this).append("g");
 
         yScale.domain([0, d3.max(measures.values, function(d) { if (d.measure == "PtSat"){return 300;}
-                                                        else {return d.observed;};}   )]);
+              else {return d.observed;};}   )]);
+
         svg.append("text")
           .attr("x", w/2)
           .attr("y", -30)/*Moves it above the chart elements*/
@@ -527,8 +530,8 @@ function type(d) {
       </script>
 
       <div class = "authors" >
-        <p>This visualization was created by <a href="http://patientcenteredcare.github.io/Project/">Katie Ernst and Amanda Hobbs</a> as part of the <a href="https://engineering.purdue.edu/IE">Industrial Engineering</a> graduate program at <a href="http://www.purdue.edu">Purdue University</a></p>
-        <p> Data from the <a href="http://www.va.gov/QUALITYOFCARE/measure-up/Strategic_Analytics_for_Improvement_and_Learning_SAIL.asp">US Dept of Veteran's Affairs SAIL program</a></p>
+        <p>This visualization was created by <a href="http://patientcenteredcare.github.io/Project/">Katie Ernst and Amanda Hobbs</a> as part of the <a href="https://engineering.purdue.edu/IE">Industrial Engineering</a> graduate program at <a href="http://www.purdue.edu">Purdue University</a>.</p>
+        <p>This data is from the <a href="http://www.va.gov/QUALITYOFCARE/measure-up/Strategic_Analytics_for_Improvement_and_Learning_SAIL.asp">US Dept of Veteran's Affairs SAIL program</a>.</p>
       </div>
 
 
