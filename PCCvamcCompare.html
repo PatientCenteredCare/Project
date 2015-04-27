@@ -412,7 +412,6 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
 
 
         var mouseon = function(){
-
               d3.selectAll(".dot,.path") //selects items that have either .dot or .path
                 .classed("hidden", false);
               d3.selectAll("rect")
@@ -510,12 +509,13 @@ https://groups.google.com/forum/#!topic/d3-js/kummm9mS4EA
           svg.append("g")
             //add quarter ticks
             .classed({"x axis":true, "dot":true, "hidden":true})
-            .attr("transform", "translate(0," + -15 + ")")
+            .attr("transform", "translate(-33," + -15 + ")")
             .attr("stroke", "none")
             .call(xAxisTime)
             //add quarter names
             .selectAll("text")
-            .style("text-anchor", "middle")
+            .style("text-anchor", "right")
+            .attr("transform", "translate(15,0)")
             .attr("dx", "-1em")
             .attr("dy", "-.6em")
             .text(function(d){
